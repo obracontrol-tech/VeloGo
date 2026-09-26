@@ -182,6 +182,32 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .paddr small{color:var(--txt2);font-size:13px}
 .rmap{height:190px;border-radius:var(--r);overflow:hidden;margin-bottom:12px;border:1px solid var(--line);background:#dfe6d6}
 .mk{cursor:pointer;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+/* Planificador */
+.planpanel{display:none;position:absolute;left:12px;right:12px;bottom:calc(var(--nav-h) + 24px);z-index:6;background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:14px 14px 12px;max-height:56%;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+#s-rutas.planning .planpanel{display:block}
+#s-rutas.planning .rec,#s-rutas.planning .mbottom{display:none}
+.phead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.phead div{flex:1}
+.phead b{font-size:19px;font-weight:800;display:block}
+.phead small{color:var(--lime);font-size:13px;font-weight:600}
+.phead .x{flex-shrink:0}
+.pstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0 6px}
+.pstats div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 6px;text-align:center}
+.pstats b{display:block;font-size:20px;font-weight:800}
+.pstats span{font-size:11px;color:var(--txt2)}
+.profwrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 6px 4px;margin:6px 0}
+.proflbl{display:flex;justify-content:space-between;font-size:11px;color:var(--txt2);padding:0 4px}
+.stages{display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.stg{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px 10px}
+.stg .n{width:28px;height:28px;border-radius:50%;background:var(--lime);color:var(--on-lime);display:grid;place-items:center;font-weight:800;font-size:14px}
+.stg b{display:block;font-size:15px}.stg small{color:var(--txt2);font-size:13px}
+.pbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.pbtns .wide{grid-column:1/-1}
+.pbtns button{min-height:48px;border-radius:24px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;background:var(--card);border:1px solid var(--line)}
+.pbtns button.lime{background:var(--lime);color:var(--on-lime);border-color:var(--lime)}
+.pbtns button:disabled{opacity:.4}
+.ppt{width:34px;height:34px;border-radius:50%;background:var(--lime);color:var(--on-lime);border:3px solid #fff;display:grid;place-items:center;font-weight:800;font-size:15px;box-shadow:0 3px 8px rgba(0,0,0,.4);cursor:grab}
+.ppt.a{background:#22C55E;color:#fff}.ppt.b{background:#EF4444;color:#fff}
 .mini{min-height:52px;padding:0 14px;border-radius:16px;background:var(--card2);border:1px solid var(--line);font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .mini{color:var(--txt);text-decoration:none}
 .mini.ok{color:var(--lime);border-color:var(--lime)}
@@ -286,11 +312,27 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="mside">
     <button aria-label="Capas" onclick="toggleLayer()"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
     <button aria-label="Mi ubicación" onclick="locateMe()"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg></button>
+    <button aria-label="Mis rutas" onclick="openRoutes(false)"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg></button>
     <button aria-label="Descargar zona" onclick="toast('Descarga de mapas: próximamente')"><svg class="i" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18"/><path d="M12 12v8m-3-3 3 3 3-3"/></svg></button>
   </div>
   <div class="rec" id="recBox">
     <span><i></i>Rec</span>
     <button onclick="toggleRec()" id="recBtn">INICIAR</button>
+  </div>
+  <div class="planpanel" id="planPanel">
+    <div class="phead"><div><b id="planTitle">De A a B</b><small id="planHint"></small></div><button class="x" onclick="exitPlanner()" aria-label="Salir del planificador"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="chips" id="loopOpts" style="display:none;margin-bottom:4px">
+      <button class="chip" data-km="20" onclick="setLoopKm(20)">20 km</button><button class="chip" data-km="40" onclick="setLoopKm(40)">40 km</button><button class="chip" data-km="60" onclick="setLoopKm(60)">60 km</button><button class="chip" data-km="80" onclick="setLoopKm(80)">80 km</button><button class="chip" data-km="100" onclick="setLoopKm(100)">100 km</button>
+      <button class="chip" onclick="newLoop()">🔄 Otra vuelta</button>
+    </div>
+    <div class="pstats" id="pStats"></div>
+    <div id="pProf"></div>
+    <div id="pStages"></div>
+    <div class="pbtns">
+      <button id="bUndo" onclick="undoPt()">↩️ Deshacer</button>
+      <button id="bSave" onclick="saveRoute()">💾 Guardar</button>
+      <button id="bUse" class="lime wide" onclick="useRoute()">📅 Crear salida con esta ruta</button>
+    </div>
   </div>
   <div class="mbottom">
     <button class="mb1" onclick="document.getElementById('placeQ').focus()"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar destino</button>
@@ -386,7 +428,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" checked><span></span></label></div>
   <div class="set">Mis actividades públicas <label class="sw"><input type="checkbox" checked><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.3</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.4</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -414,11 +456,11 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 <!-- Empieza a planificar -->
 <div class="sheet" id="sh-plan">
   <div class="grab"></div>
-  <h2>Empieza a planificar <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <h2>Empieza a planificar <button class="x" onclick="closePlanSheet()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
   <div class="plan">
-    <button class="pcard" onclick="toast('Planificador A→B: Fase 3')"><div class="art"><svg viewBox="0 0 64 64"><path d="M14 46c10-18 26-6 36-26" fill="none" stroke="#C8DC3C" stroke-width="4" stroke-dasharray="6 5" stroke-linecap="round"/><circle cx="14" cy="46" r="8" fill="#22C55E"/><text x="14" y="50" font-size="10" text-anchor="middle" fill="#fff" font-weight="800">A</text><circle cx="50" cy="20" r="8" fill="#EF4444"/><text x="50" y="24" font-size="10" text-anchor="middle" fill="#fff" font-weight="800">B</text></svg></div><div class="tx"><b>De A a B</b><small>Ruta de ida, de un punto a otro.</small></div></button>
-    <button class="pcard" onclick="toast('Planificador por etapas: Fase 3')"><div class="art"><svg viewBox="0 0 64 64"><path d="M8 48h14M25 48h14M42 48h14" stroke-width="6" stroke-linecap="round" stroke="#22C55E"/><path d="M25 48h14" stroke-width="6" stroke-linecap="round" stroke="#E0913A"/><path d="M42 48h14" stroke-width="6" stroke-linecap="round" stroke="#C8DC3C"/><circle cx="15" cy="26" r="7" fill="#22C55E"/><circle cx="32" cy="22" r="7" fill="#E0913A"/><circle cx="49" cy="18" r="7" fill="#C8DC3C"/><text x="15" y="29.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">1</text><text x="32" y="25.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">2</text><text x="49" y="21.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">3</text></svg></div><div class="tx"><b>Por etapas</b><small>Ruta larga dividida en días o paradas.</small></div></button>
-    <button class="pcard" onclick="toast('Ruta circular: Fase 3')"><div class="art"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="22" ry="14" fill="none" stroke="#C8DC3C" stroke-width="5"/><circle cx="32" cy="24" r="8" fill="#22C55E"/><path d="M28 24h8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></div><div class="tx"><b>Ruta circular</b><small>Sale y vuelve al mismo sitio.</small></div></button>
+    <button class="pcard" onclick="startPlanner('ab')"><div class="art"><svg viewBox="0 0 64 64"><path d="M14 46c10-18 26-6 36-26" fill="none" stroke="#C8DC3C" stroke-width="4" stroke-dasharray="6 5" stroke-linecap="round"/><circle cx="14" cy="46" r="8" fill="#22C55E"/><text x="14" y="50" font-size="10" text-anchor="middle" fill="#fff" font-weight="800">A</text><circle cx="50" cy="20" r="8" fill="#EF4444"/><text x="50" y="24" font-size="10" text-anchor="middle" fill="#fff" font-weight="800">B</text></svg></div><div class="tx"><b>De A a B</b><small>Ruta de ida, de un punto a otro.</small></div></button>
+    <button class="pcard" onclick="startPlanner('stages')"><div class="art"><svg viewBox="0 0 64 64"><path d="M8 48h14M25 48h14M42 48h14" stroke-width="6" stroke-linecap="round" stroke="#22C55E"/><path d="M25 48h14" stroke-width="6" stroke-linecap="round" stroke="#E0913A"/><path d="M42 48h14" stroke-width="6" stroke-linecap="round" stroke="#C8DC3C"/><circle cx="15" cy="26" r="7" fill="#22C55E"/><circle cx="32" cy="22" r="7" fill="#E0913A"/><circle cx="49" cy="18" r="7" fill="#C8DC3C"/><text x="15" y="29.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">1</text><text x="32" y="25.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">2</text><text x="49" y="21.5" font-size="9" text-anchor="middle" fill="#0E1A2B" font-weight="800">3</text></svg></div><div class="tx"><b>Por etapas</b><small>Ruta larga dividida en días o paradas.</small></div></button>
+    <button class="pcard" onclick="startPlanner('loop')"><div class="art"><svg viewBox="0 0 64 64"><ellipse cx="32" cy="38" rx="22" ry="14" fill="none" stroke="#C8DC3C" stroke-width="5"/><circle cx="32" cy="24" r="8" fill="#22C55E"/><path d="M28 24h8" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg></div><div class="tx"><b>Ruta circular</b><small>Sale y vuelve al mismo sitio.</small></div></button>
   </div>
 </div>
 
@@ -463,6 +505,11 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
 
   <div class="f">
+    <label class="l">🗺️ Ruta <em>(opcional)</em></label>
+    <div id="routeBox"></div>
+  </div>
+
+  <div class="f">
     <label class="l" for="cTitle">✏️ Nombre de la salida <em>(opcional)</em></label>
     <input class="inp" id="cTitle" placeholder="Ej. Vuelta al pantano" maxlength="40">
   </div>
@@ -498,6 +545,13 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 
 <!-- Detalle salida -->
 <div class="sheet" id="sh-ride"><div class="grab"></div><div id="rideBody"></div></div>
+
+<!-- Mis rutas -->
+<div class="sheet" id="sh-routes">
+  <div class="grab"></div>
+  <h2>Mis rutas <button class="x" onclick="closeRoutes()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <div id="routesList"></div>
+</div>
 
 <!-- Todas las salidas -->
 <div class="sheet" id="sh-all">
@@ -615,7 +669,7 @@ function rideCard(r,full){
   const meet=r.meet&&r.meet!==r.start?`<div class="pt"><span class="ico">📍</span><span>Encuentro: <b>${esc(r.meet)}</b>${r.meetHour?' · '+esc(r.meetHour):''}</span></div>`:`<div class="pt"><span class="ico">📍</span><span>Encuentro en el mismo punto</span></div>`;
   return `<div class="ride${full?' full':''}" onclick="openRide('${r.id}')">
     <div class="when"><div><div class="date">${fmtDate(r.date)}</div><div class="hour num">${esc(r.hour)}</div></div>
-    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${r.type?`<span class="tag lime">${esc(r.type)}</span>`:''}${r.km?`<span class="tag num">${+r.km} km</span>`:''}</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${r.type?`<span class="tag lime">${esc(r.type)}</span>`:''}${r.km?`<span class="tag num">${+r.km} km</span>`:''}${r.route?`<span class="tag num">+${r.route.up} m</span>`:''}</div></div>
     <div class="title">${esc(r.title||'Salida en grupo')}</div>
     <div class="pt"><span class="ico">🚩</span><span>Salida: <b>${esc(r.start)}</b></span></div>${meet}
     <div class="foot">${faces(r)}<button class="join${inR?' on':''}" onclick="event.stopPropagation();toggleJoin('${r.id}')">${inR?'Ya voy ✓':'Me apunto'}</button></div>
@@ -672,7 +726,8 @@ async function openRide(id,keep){
      <div class="stat"><b class="num">${esc(r.hour)}</b><span>hora de salida</span></div>
      <div class="stat"><b class="num">${r.km?+r.km:'—'}</b><span>km aprox.</span></div>
    </div>
-   ${(r.startLL||r.meetLL)?'<div class="rmap" id="rideMap"></div>':''}
+   ${(r.startLL||r.meetLL||r.route)?'<div class="rmap" id="rideMap"></div>':''}
+   ${r.route?`<div class="pstats" style="margin-top:0"><div><b class="num">${r.route.km}</b><span>km</span></div><div><b class="num">+${r.route.up}</b><span>m subida</span></div><div><b class="num">−${r.route.down}</b><span>m bajada</span></div><div><b class="num" style="font-size:16px">${hm(r.route.mins)}</b><span>aprox.</span></div></div>${profileSVG(unpackRoute(r.route).prof)}<button class="btn btn-line" style="margin:8px 0 14px" onclick="showRoute(unpackRoute(rides.find(x=>x.id==='${r.id}').route))">🗺️ Ver la ruta en el mapa grande</button>`:''}
    <div class="li" style="margin-bottom:10px;cursor:default"><span class="em">🚩</span><div><small>Punto de salida</small><b>${esc(r.start)}</b></div><a class="mini" href="${mapsLink(r.start,r.startLL)}" target="_blank" rel="noopener">Cómo llegar</a></div>
    <div class="li" style="margin-bottom:16px;cursor:default"><span class="em">📍</span><div><small>Punto de encuentro${r.meetHour?' · '+esc(r.meetHour):''}</small><b>${esc(meetPt)}</b></div><a class="mini" href="${mapsLink(meetPt,r.meetLL||r.startLL)}" target="_blank" rel="noopener">Cómo llegar</a></div>
    <div class="chips" style="margin-bottom:14px">${r.type?`<span class="tag lime">${esc(r.type)}</span>`:''}${r.pace?`<span class="tag">Ritmo ${esc(String(r.pace).toLowerCase())}</span>`:''}<span class="tag">${r.seats?p.length+'/'+r.seats+' plazas':'Sin límite de plazas'}</span><span class="tag">Organiza ${esc(r.by)}</span></div>
@@ -693,9 +748,12 @@ function drawRideMap(r){
   if(rideMap){rideMap.remove();rideMap=null}
   if(!$('rideMap')||typeof maplibregl==='undefined')return;
   const pts=[];if(r.startLL)pts.push(['#22C55E',r.startLL]);if(r.meetLL&&(!r.startLL||r.meetLL.lat!==r.startLL.lat||r.meetLL.lng!==r.startLL.lng))pts.push(['#EF4444',r.meetLL]);
-  rideMap=new maplibregl.Map({container:'rideMap',style:JSON.parse(JSON.stringify(STYLE)),center:[pts[0][1].lng,pts[0][1].lat],zoom:15,attributionControl:false,interactive:true});
+  const rc=r.route?decodePoly(r.route.poly):null;
+  const c0=pts.length?[pts[0][1].lng,pts[0][1].lat]:[rc[0][1],rc[0][0]];
+  rideMap=new maplibregl.Map({container:'rideMap',style:JSON.parse(JSON.stringify(STYLE)),center:c0,zoom:15,attributionControl:false,interactive:true});
+  if(rc){setLine(rideMap,rc);const b=new maplibregl.LngLatBounds();rc.forEach(p=>b.extend([p[1],p[0]]));pts.forEach(([,ll])=>b.extend([ll.lng,ll.lat]));rideMap.fitBounds(b,{padding:30,duration:0});}
   pts.forEach(([c,ll])=>{const el=document.createElement('div');el.className='mk';el.innerHTML=PIN_SVG(c);new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([ll.lng,ll.lat]).addTo(rideMap)});
-  if(pts.length>1){const b=new maplibregl.LngLatBounds();pts.forEach(([,ll])=>b.extend([ll.lng,ll.lat]));rideMap.fitBounds(b,{padding:50,maxZoom:16,duration:0})}
+  if(!rc&&pts.length>1){const b=new maplibregl.LngLatBounds();pts.forEach(([,ll])=>b.extend([ll.lng,ll.lat]));rideMap.fitBounds(b,{padding:50,maxZoom:16,duration:0})}
 }
 function cancelRide(id){
   if(!ready()||!confirm('¿Cancelar esta salida? Se borrará para todos.'))return;
@@ -709,6 +767,7 @@ function openCreate(){
   $('cHour').value='08:30';$('cSame').checked=true;$('meetBox').style.display='none';
   ['gpsStart','gpsMeet','mapStart','mapMeet'].forEach(i=>$(i).classList.remove('ok'));
   pickLL.start=pickLL.meet=null;$('okStart').classList.remove('on');$('okMeet').classList.remove('on');
+  formRoute=null;renderRouteBox();
   document.querySelectorAll('.err').forEach(e=>e.style.display='none');
   $('cDate').value=iso(addDays(1));$('cDate').min=iso(new Date());
   openSheet('sh-create');
@@ -739,7 +798,8 @@ function publishRide(){
   const r={title:$('cTitle').value.trim().slice(0,40),date,hour,start,meet,meetHour:same?'':($('cMeetHour').value||''),
     type:chipVal('typeChips')||'',pace:chipVal('paceChips')||'',km:Math.max(0,Math.min(400,Math.round(+$('cKm').value||0))),seats:+$('cSeats').value||0,
     note:$('cNote').value.trim().slice(0,200),by:myName(),byUid:uid,people:{[uid]:myName()},createdAt:FV.serverTimestamp(),
-    startLL:pickLL.start||null,meetLL:same?(pickLL.start||null):(pickLL.meet||null)};
+    startLL:pickLL.start||null,meetLL:same?(pickLL.start||null):(pickLL.meet||null),route:formRoute?{...formRoute}:null};
+  if(r.route){delete r.route.a;if(!r.km)r.km=Math.round(r.route.km)}
   ref.set(r).catch(netErr);
   addPoints(20,{created:FV.increment(1)});
   go('comunidad');closeSheets();
@@ -801,6 +861,7 @@ function initMap(){
   map=new maplibregl.Map({container:'map',style:STYLE,center:[0.6200,41.6176],zoom:12,attributionControl:{compact:true}});
   locateMe(true);
   map.on('load',drawRideMarkers);
+  map.on('click',e=>{if(plan.active&&!plan.view)addPlanPt({lat:e.lngLat.lat,lng:e.lngLat.lng})});
 }
 function locateMe(silent){
   if(!navigator.geolocation||!map)return;
@@ -814,13 +875,275 @@ function locateMe(silent){
 /* Salidas en el mapa de Rutas */
 let rideMarkers=[];
 function drawRideMarkers(){
-  if(!map)return;rideMarkers.forEach(m=>m.remove());rideMarkers=[];
+  if(!map)return;rideMarkers.forEach(m=>m.remove());rideMarkers=[];if(plan.active)return;
   upcoming().filter(r=>r.startLL).forEach(r=>{
     const el=document.createElement('div');el.className='mk';el.innerHTML=PIN_SVG(joined(r)?'#C8DC3C':'#22C55E');el.title=r.title||'Salida';
     el.onclick=()=>openRide(r.id);
     rideMarkers.push(new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([r.startLL.lng,r.startLL.lat]).addTo(map));
   });
 }
+
+
+/* ===================================================================
+   PLANIFICADOR DE RUTAS (Fase 3) — Mapbox Directions (bici) + desnivel Open-Meteo
+   =================================================================== */
+const MAPBOX_TOKEN='pk.eyJ1Ijoiam1wZWxsZWlkYSIsImEiOiJjbXVpYjFvdGExNGgxMndzYWFpb3dvam5sIn0.kjsEtPRpABc5pTvYUAA5zw';
+const PLAN_T={ab:'De A a B',stages:'Por etapas',loop:'Ruta circular'};
+let plan={active:false,view:false,mode:'ab',pts:[],markers:[],route:null,loopKm:40,seed:1,busy:false,reqId:0,fromCreate:false};
+let formRoute=null;
+
+/* Polilínea codificada (para guardar la ruta ocupando poco) */
+function encodePoly(pts){let o='',pl=0,pg=0;const enc=v=>{v=v<0?~(v<<1):v<<1;let s='';while(v>=0x20){s+=String.fromCharCode((0x20|(v&0x1f))+63);v>>=5}return s+String.fromCharCode(v+63)};
+  for(const p of pts){const la=Math.round(p[0]*1e5),lg=Math.round(p[1]*1e5);o+=enc(la-pl)+enc(lg-pg);pl=la;pg=lg}return o}
+function decodePoly(s){const out=[];let i=0,la=0,lg=0;while(i<s.length){for(const k of [0,1]){let r=0,sh=0,b;do{b=s.charCodeAt(i++)-63;r|=(b&0x1f)<<sh;sh+=5}while(b>=0x20);const d=(r&1)?~(r>>1):(r>>1);if(k===0)la+=d;else lg+=d}out.push([la/1e5,lg/1e5])}return out}
+
+const isMtb=()=>document.querySelectorAll('.seg button')[1]?.classList.contains('on');
+function estMins(km,up){return Math.round((km/(isMtb()?13:21)+up/700)*60)}
+const hm=m=>m>=60?Math.floor(m/60)+' h '+String(Math.round(m%60)).padStart(2,'0')+' min':Math.round(m)+' min';
+
+/* Distancia acumulada de una polilínea [lat,lng,...] */
+function cumDist(c){const d=[0];for(let i=1;i<c.length;i++)d.push(d[i-1]+hav(c[i-1],c[i]));return d}
+
+/* Desnivel: muestrea ~cada 150 m y pide la altitud (gratis, sin clave) */
+async function addElevation(route){
+  const c=route.coords,cd=cumDist(c),tot=cd.at(-1);
+  const n=Math.max(2,Math.min(300,Math.round(tot/0.15)));
+  const samp=[];let j=0;
+  for(let k=0;k<n;k++){const t=tot*k/(n-1);while(j<cd.length-2&&cd[j+1]<t)j++;const f=cd[j+1]>cd[j]?(t-cd[j])/(cd[j+1]-cd[j]):0;
+    samp.push({lat:c[j][0]+(c[j+1][0]-c[j][0])*f,lng:c[j][1]+(c[j+1][1]-c[j][1])*f,d:t})}
+  const eles=[];
+  for(let k=0;k<samp.length;k+=100){
+    const ch=samp.slice(k,k+100);
+    const r=await fetch('https://api.open-meteo.com/v1/elevation?latitude='+ch.map(p=>p.lat.toFixed(5)).join(',')+'&longitude='+ch.map(p=>p.lng.toFixed(5)).join(','));
+    if(!r.ok)throw new Error('ele');const d=await r.json();eles.push(...d.elevation);
+  }
+  samp.forEach((p,i)=>p.e=eles[i]??0);
+  // Suavizado ligero para no sumar "ruido"
+  const sm=samp.map((p,i)=>{const a=samp.slice(Math.max(0,i-1),i+2);return a.reduce((s,x)=>s+x.e,0)/a.length});
+  let up=0,down=0;for(let i=1;i<sm.length;i++){const d=sm[i]-sm[i-1];if(d>0)up+=d;else down-=d}
+  route.prof=samp.map((p,i)=>({d:p.d,e:sm[i]}));route.up=up;route.down=down;
+  return route;
+}
+
+/* Perfil de elevación con colores por pendiente */
+function profileSVG(prof){
+  if(!prof||prof.length<2)return '';
+  const W=340,H=96,P=4,tot=prof.at(-1).d||1;
+  const es=prof.map(p=>p.e),mn=Math.min(...es),mx=Math.max(...es),rg=Math.max(20,mx-mn);
+  const X=d=>P+(W-2*P)*d/tot,Y=e=>H-P-(H-2*P-14)*(e-mn)/rg;
+  let area=`M${X(0)},${H-P} `+prof.map(p=>`L${X(p.d).toFixed(1)},${Y(p.e).toFixed(1)}`).join(' ')+` L${X(tot)},${H-P} Z`;
+  let segs='',maxS=0,maxAt=0;
+  for(let i=1;i<prof.length;i++){
+    const dd=(prof[i].d-prof[i-1].d)*1000;const s=dd>0?(prof[i].e-prof[i-1].e)/dd*100:0;
+    if(s>maxS){maxS=s;maxAt=i}
+    const col=s>=12?'#EF4444':s>=7?'#F97316':'#22C55E';
+    segs+=`<line x1="${X(prof[i-1].d).toFixed(1)}" y1="${Y(prof[i-1].e).toFixed(1)}" x2="${X(prof[i].d).toFixed(1)}" y2="${Y(prof[i].e).toFixed(1)}" stroke="${col}" stroke-width="3" stroke-linecap="round"/>`;
+  }
+  const tag=maxS>=4?`<g transform="translate(${Math.min(W-70,Math.max(4,X(prof[maxAt].d)-33))},2)"><rect width="66" height="18" rx="9" fill="#0E1A2B" stroke="#F97316"/><text x="33" y="13" font-size="11" font-weight="800" fill="#F97316" text-anchor="middle">máx ${Math.round(maxS)}%</text></g>`:'';
+  return `<div class="profwrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${H}px"><path d="${area}" fill="rgba(200,220,60,.12)"/>${segs}${tag}</svg>
+  <div class="proflbl"><span>${Math.round(mn)} m</span><span>🟢 llano · 🟠 ≥7% · 🔴 ≥12%</span><span>${Math.round(mx)} m</span></div></div>`;
+}
+
+/* Línea de la ruta en un mapa */
+function setLine(m,coords){
+  if(!m)return;
+  if(!m.isStyleLoaded()){m.once('load',()=>setLine(m,coords));return}
+  const data={type:'FeatureCollection',features:coords?[{type:'Feature',geometry:{type:'LineString',coordinates:coords.map(p=>[p[1],p[0]])}}]:[]};
+  const s=m.getSource('plan');
+  if(s)s.setData(data);
+  else{m.addSource('plan',{type:'geojson',data});
+    m.addLayer({id:'plan-case',type:'line',source:'plan',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#0E1A2B','line-width':9}});
+    m.addLayer({id:'plan-line',type:'line',source:'plan',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#C8DC3C','line-width':5}});}
+}
+function fitTo(m,coords,pad){if(!m||!coords||!coords.length)return;const b=new maplibregl.LngLatBounds();coords.forEach(p=>b.extend([p[1],p[0]]));m.fitBounds(b,{padding:pad||{top:150,bottom:360,left:40,right:80},maxZoom:16,duration:600})}
+
+/* Abrir / cerrar el planificador */
+function startPlanner(mode){
+  closeSheets();go('rutas');
+  if(!map){toast('El mapa necesita conexión a internet');return}
+  plan.active=true;plan.view=false;plan.mode=mode;plan.seed=1;clearPlan(true);
+  $('s-rutas').classList.add('planning');rideMarkers.forEach(m=>m.remove());
+  $('planTitle').textContent=PLAN_T[mode];
+  // Empezar desde tu ubicación si ya la conocemos
+  if(meMarker){const l=meMarker.getLngLat();addPlanPt({lat:l.lat,lng:l.lng})}
+  renderPlan();
+}
+function exitPlanner(){
+  plan.active=false;plan.view=false;clearPlan(true);$('s-rutas').classList.remove('planning');drawRideMarkers();
+  if(plan.fromCreate){plan.fromCreate=false;reopenCreate()}
+}
+function clearPlan(silent){plan.markers.forEach(m=>m.remove());plan.markers=[];plan.pts=[];plan.route=null;plan.reqId++;plan.busy=false;setLine(map,null);if(!silent)renderPlan()}
+function undoPt(){if(!plan.pts.length)return;plan.pts.pop();redrawPlanMarkers();computeRoute()}
+
+function addPlanPt(ll){
+  if(!plan.active||plan.view)return;
+  if(plan.mode==='loop')plan.pts=[ll];
+  else if(plan.mode==='ab'&&plan.pts.length>=2)plan.pts[1]=ll;
+  else{if(plan.pts.length>=25){toast('Máximo 25 puntos');return}plan.pts.push(ll)}
+  redrawPlanMarkers();computeRoute();
+}
+function redrawPlanMarkers(){
+  plan.markers.forEach(m=>m.remove());plan.markers=[];
+  const n=plan.pts.length;
+  plan.pts.forEach((p,i)=>{
+    const first=i===0,last=i===n-1&&n>1&&plan.mode!=='loop';
+    const el=document.createElement('div');el.className='ppt'+(first?' a':last?' b':'');
+    el.textContent=first?(plan.mode==='loop'?'⟲':'A'):last?'B':String(i);
+    const mk=new maplibregl.Marker({element:el,draggable:!plan.view}).setLngLat([p.lng,p.lat]).addTo(map);
+    mk.on('dragend',()=>{const l=mk.getLngLat();plan.pts[i]={lat:l.lat,lng:l.lng};computeRoute()});
+    plan.markers.push(mk);
+  });
+}
+
+/* Genera los puntos de una ruta circular alrededor de la salida */
+function loopWaypoints(s,km,seed,scale){
+  const R=km/(2*Math.PI)*0.78*(scale||1);                  // km
+  const th=(seed*137.5)%360*Math.PI/180;
+  const dLat=d=>d/111.32,dLng=d=>d/(111.32*Math.cos(s.lat*Math.PI/180));
+  const C={lat:s.lat+dLat(R*Math.sin(th)),lng:s.lng+dLng(R*Math.cos(th))};
+  const pts=[s];
+  for(let k=1;k<=3;k++){const a=th+Math.PI+k*Math.PI/2;pts.push({lat:C.lat+dLat(R*Math.sin(a)),lng:C.lng+dLng(R*Math.cos(a))})}
+  pts.push(s);return pts;
+}
+async function mbRoute(wps){
+  const url='https://api.mapbox.com/directions/v5/mapbox/cycling/'+wps.map(p=>p.lng.toFixed(6)+','+p.lat.toFixed(6)).join(';')+'?geometries=geojson&overview=full&steps=false&access_token='+MAPBOX_TOKEN;
+  const r=await fetch(url);const d=await r.json();
+  if(!r.ok||d.code!=='Ok'||!d.routes?.length)throw d;
+  const rt=d.routes[0];
+  return{coords:rt.geometry.coordinates.map(c=>[c[1],c[0]]),km:rt.distance/1000,legs:rt.legs.map(l=>l.distance/1000)};
+}
+async function computeRoute(){
+  const need=plan.mode==='loop'?1:2;
+  if(plan.pts.length<need){plan.route=null;setLine(map,null);renderPlan();return}
+  if(!MAPBOX_TOKEN||MAPBOX_TOKEN.startsWith('PON_')){toast('Falta la clave de Mapbox para calcular rutas');return}
+  const id=++plan.reqId;plan.busy=true;renderPlan();
+  try{
+    let r;
+    if(plan.mode==='loop'){
+      r=await mbRoute(loopWaypoints(plan.pts[0],plan.loopKm,plan.seed));
+      if(Math.abs(r.km-plan.loopKm)/plan.loopKm>0.2){const r2=await mbRoute(loopWaypoints(plan.pts[0],plan.loopKm,plan.seed,plan.loopKm/r.km));if(Math.abs(r2.km-plan.loopKm)<Math.abs(r.km-plan.loopKm))r=r2}
+    }else r=await mbRoute(plan.pts);
+    if(id!==plan.reqId)return;
+    r.mode=plan.mode;r.up=0;r.down=0;
+    setLine(map,r.coords);plan.route=r;renderPlan();
+    if(plan.mode==='loop'||plan.pts.length===2)fitTo(map,r.coords);
+    try{await addElevation(r)}catch(e){console.warn('desnivel',e)}
+    if(id!==plan.reqId)return;
+    r.mins=estMins(r.km,r.up);renderPlan();
+  }catch(e){
+    if(id!==plan.reqId)return;console.error(e);
+    plan.route=null;setLine(map,null);
+    toast(e&&e.code==='NoRoute'?'No hay camino en bici entre esos puntos':e&&e.code==='NoSegment'?'Ese punto está lejos de cualquier camino. Acércalo a una carretera':e&&e.message&&/token/i.test(e.message)?'La clave de Mapbox no es válida para esta web':'No se pudo calcular la ruta. Revisa la conexión');
+  }finally{if(id===plan.reqId){plan.busy=false;renderPlan()}}
+}
+
+/* Resumen por etapa (modo por etapas) */
+function stageRows(r){
+  if(!r||!r.legs||r.legs.length<2)return '';
+  let acc=0;
+  return '<div class="stages">'+r.legs.map((km,i)=>{
+    const a=acc,b=acc+km;acc=b;let up=0;
+    if(r.prof)for(let k=1;k<r.prof.length;k++){if(r.prof[k].d>a&&r.prof[k].d<=b){const d=r.prof[k].e-r.prof[k-1].e;if(d>0)up+=d}}
+    return `<div class="stg"><span class="n">${i+1}</span><div><b>Etapa ${i+1}</b><small>${km.toFixed(1)} km · +${Math.round(up)} m · ${hm(estMins(km,up))}</small></div></div>`;
+  }).join('')+'</div>';
+}
+
+function planHint(){
+  const n=plan.pts.length;
+  if(plan.view)return 'Ruta guardada';
+  if(plan.mode==='ab')return n===0?'Toca el mapa para poner la salida (A)':n===1?'Ahora toca el destino (B)':'Arrastra A o B para cambiar la ruta';
+  if(plan.mode==='stages')return n===0?'Toca el mapa para poner la salida':n===1?'Toca para añadir la primera parada':'Cada toque añade una parada. Arrastra para mover';
+  return n===0?'Toca el mapa donde empieza y acaba la vuelta':'Elige los km. "Otra vuelta" cambia el recorrido';
+}
+function renderPlan(){
+  if(!plan.active)return;
+  const r=plan.route;
+  $('planHint').textContent=plan.busy?'Calculando ruta…':planHint();
+  $('loopOpts').style.display=plan.mode==='loop'&&!plan.view?'flex':'none';
+  $('loopOpts').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',+c.dataset.km===plan.loopKm));
+  $('pStats').innerHTML=r?`
+    <div><b class="num">${r.km.toFixed(1)}</b><span>km</span></div>
+    <div><b class="num">${r.prof?'+'+Math.round(r.up):'…'}</b><span>m subida</span></div>
+    <div><b class="num">${r.prof?'−'+Math.round(r.down):'…'}</b><span>m bajada</span></div>
+    <div><b class="num" style="font-size:18px">${r.mins?hm(r.mins):'…'}</b><span>aprox.</span></div>`:'';
+  $('pStats').style.display=r?'grid':'none';
+  $('pProf').innerHTML=r&&r.prof?profileSVG(r.prof):'';
+  $('pStages').innerHTML=plan.mode==='stages'?stageRows(r):'';
+  $('bUndo').style.display=plan.view||plan.mode==='loop'?'none':'flex';
+  $('bUndo').disabled=!plan.pts.length;
+  $('bSave').style.display=plan.view?'none':'flex';
+  ['bSave','bUse'].forEach(i=>$(i).disabled=!r||plan.busy);
+  $('bUse').innerHTML=plan.fromCreate?'✓ Añadir a la salida':'📅 Crear salida con esta ruta';
+}
+function setLoopKm(km){plan.loopKm=km;computeRoute()}
+function newLoop(){plan.seed++;computeRoute()}
+
+/* Guardar ruta (en el móvil) y pasarla a una salida */
+function packRoute(r){
+  const step=Math.max(1,Math.ceil(r.coords.length/350));
+  const pts=r.coords.filter((_,i)=>i%step===0||i===r.coords.length-1);
+  const pr=r.prof?(()=>{const s=Math.max(1,Math.ceil(r.prof.length/120));return r.prof.filter((_,i)=>i%s===0||i===r.prof.length-1)})():[];
+  return{poly:encodePoly(pts),pd:pr.map(p=>+p.d.toFixed(2)),pe:pr.map(p=>Math.round(p.e)),km:+r.km.toFixed(1),up:Math.round(r.up||0),down:Math.round(r.down||0),mins:r.mins||estMins(r.km,r.up||0),mode:r.mode,legs:(r.legs||[]).map(x=>+x.toFixed(1))};
+}
+function unpackRoute(p){const c=decodePoly(p.poly);return{coords:c,km:p.km,up:p.up,down:p.down,mins:p.mins,mode:p.mode,legs:p.legs||[],prof:(p.pd||[]).map((d,i)=>({d,e:p.pe[i]}))}}
+const routeName=r=>(PLAN_T[r.mode]||'Ruta')+' · '+r.km.toFixed(0)+' km';
+function saveRoute(){
+  if(!plan.route)return;
+  const name=prompt('Nombre de la ruta',routeName(plan.route));if(name===null)return;
+  const list=store.get('routes',[]);
+  list.unshift({id:'rt'+Date.now().toString(36),name:(name.trim()||routeName(plan.route)).slice(0,40),date:iso(new Date()),...packRoute(plan.route)});
+  store.set('routes',list.slice(0,50));toast('Ruta guardada en "Mis rutas"');
+}
+async function useRoute(){
+  if(!plan.route)return;
+  formRoute=packRoute(plan.route);
+  const s=plan.route.coords[0];formRoute.a={lat:+s[0].toFixed(6),lng:+s[1].toFixed(6)};
+  const back=plan.fromCreate;plan.fromCreate=false;
+  plan.active=false;plan.view=false;clearPlan(true);$('s-rutas').classList.remove('planning');drawRideMarkers();
+  if(back)reopenCreate();else{const r=formRoute;openCreate();formRoute=r;renderRouteBox()}
+  // Si aún no hay punto de salida, usar el inicio de la ruta
+  if(!$('cStart').value.trim()){$('cStart').value=await reverseName(formRoute.a);setPicked('start',formRoute.a)}
+  if(!$('cKm').value)$('cKm').value=Math.round(formRoute.km);
+}
+
+/* Mis rutas */
+function openRoutes(pick){
+  const list=store.get('routes',[]);
+  $('routesList').innerHTML=list.length?list.map(r=>`<div class="li" style="cursor:default;margin-bottom:10px"><span class="em">${r.mode==='loop'?'⟲':r.mode==='stages'?'🧭':'🗺️'}</span><div><b>${esc(r.name)}</b><small>${r.km} km · +${r.up} m · ${hm(r.mins)}</small></div>
+    <div style="display:flex;flex-direction:column;gap:6px">${pick?`<button class="mini ok" onclick="pickSaved('${r.id}')">Elegir</button>`:`<button class="mini" onclick="viewSaved('${r.id}')">Ver</button>`}<button class="mini" style="color:var(--red)" onclick="delSaved('${r.id}',${pick?1:0})">Borrar</button></div></div>`).join('')
+    :`<div class="empty">Aún no tienes rutas guardadas.<br>Planifica una y pulsa "Guardar".</div>`;
+  openSheet('sh-routes');
+}
+function delSaved(id,pick){if(!confirm('¿Borrar esta ruta?'))return;store.set('routes',store.get('routes',[]).filter(r=>r.id!==id));openRoutes(pick)}
+function pickSaved(id){
+  const r=store.get('routes',[]).find(x=>x.id===id);if(!r)return;
+  formRoute={...r};const c=decodePoly(r.poly)[0];formRoute.a={lat:c[0],lng:c[1]};delete formRoute.name;delete formRoute.id;delete formRoute.date;
+  reopenCreate();if(!$('cKm').value)$('cKm').value=Math.round(r.km);
+  if(!$('cStart').value.trim())reverseName(formRoute.a).then(n=>{$('cStart').value=n;setPicked('start',formRoute.a)});
+}
+function viewSaved(id){const r=store.get('routes',[]).find(x=>x.id===id);if(r)showRoute(unpackRoute(r))}
+function showRoute(r){
+  closeSheets();go('rutas');if(!map)return;
+  plan.active=true;plan.view=true;plan.mode=r.mode||'ab';clearPlan(true);
+  plan.route=r;$('s-rutas').classList.add('planning');rideMarkers.forEach(m=>m.remove());
+  $('planTitle').textContent=PLAN_T[plan.mode]||'Ruta';
+  const s=r.coords[0],e=r.coords.at(-1);plan.pts=[{lat:s[0],lng:s[1]}];if(r.mode!=='loop')plan.pts.push({lat:e[0],lng:e[1]});
+  redrawPlanMarkers();setLine(map,r.coords);setTimeout(()=>fitTo(map,r.coords),100);renderPlan();
+}
+
+/* Ruta dentro del formulario de salida */
+function renderRouteBox(){
+  const r=formRoute;
+  $('routeBox').innerHTML=r?`<div class="li" style="cursor:default;border-color:var(--lime)"><span class="em">${r.mode==='loop'?'⟲':'🗺️'}</span><div><b>${r.km} km · +${r.up} m</b><small>${PLAN_T[r.mode]||'Ruta'} · ${hm(r.mins)}</small></div><button class="mini" onclick="formRoute=null;renderRouteBox()">Quitar</button></div>`
+   :`<div class="row3" style="margin-top:0"><button class="mini" onclick="planFromCreate()">🗺️ Planificar ruta</button><button class="mini" onclick="openRoutes(true)">📂 Mis rutas</button></div>`;
+}
+function planFromCreate(){plan.fromCreate=true;openSheet('sh-plan')}
+function reopenCreate(){openSheet('sh-create');renderRouteBox()}
+
+let routesPick=false;
+const _openRoutes=openRoutes;openRoutes=function(pick){routesPick=!!pick;_openRoutes(pick)};
+function closeRoutes(){closeSheets();if(routesPick){routesPick=false;reopenCreate()}}
+function closePlanSheet(){closeSheets();if(plan.fromCreate){plan.fromCreate=false;reopenCreate()}}
 
 /* ===== Selector de punto con chincheta ===== */
 const pickLL={start:null,meet:null};
@@ -889,7 +1212,7 @@ $('pQ').addEventListener('keydown',async e=>{
 });
 
 function toggleLayer(){if(!map)return;sat=!sat;map.setLayoutProperty('sat','visibility',sat?'visible':'none');toast(sat?'Vista satélite':'Vista mapa')}
-function segBike(b){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on')}
+function segBike(b){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(plan.active&&plan.route){plan.route.mins=estMins(plan.route.km,plan.route.up||0);renderPlan()}}
 $('placeQ').addEventListener('keydown',async e=>{
   if(e.key!=='Enter'||!e.target.value.trim())return;
   try{
@@ -1004,6 +1327,7 @@ function startFirebase(){
 }
 
 /* ===== Arranque ===== */
+$('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
