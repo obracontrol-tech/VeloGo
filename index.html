@@ -282,6 +282,13 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .part{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:8px}
 .prt-t,.prt-b{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .prt-t{margin-bottom:8px}.prt-t span{font-weight:800;font-size:14px;white-space:nowrap}.prt-b small{color:var(--txt2)}
+.install{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--lime);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.install div{flex:1;min-width:0}.install b{display:block}.install small{color:var(--txt2);font-size:13px}
+.faq{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:8px;padding:0 14px}
+.faq summary{list-style:none;cursor:pointer;padding:14px 0;font-weight:700;display:flex;gap:10px;align-items:center}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary span{font-size:22px}
+.faq p{color:var(--txt2);margin:0 0 14px;line-height:1.5}
 .sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
 .sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
 .sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -467,6 +474,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <button class="round" aria-label="Avisos" onclick="toast('No tienes avisos nuevos')"><svg class="i" viewBox="0 0 24 24"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></button>
   </div>
 
+  <div id="installBox"></div>
   <div class="hero">
     <svg class="deco" viewBox="0 0 200 140" aria-hidden="true"><g fill="none" stroke="#C8DC3C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity=".85"><circle cx="45" cy="100" r="32"/><circle cx="155" cy="100" r="32"/><path d="M45 100 80 45h55l20 55M80 45l30 55h45M110 100 135 45M70 32h24M128 32h18l-11 13"/></g></svg>
     <h2>Sal a rodar acompañado</h2>
@@ -567,7 +575,14 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" id="swNear" checked onchange="setNear(this.checked)"><span></span></label></div>
   <div class="set">Publicar mis salidas en la comunidad <label class="sw"><input type="checkbox" id="swPub" checked onchange="store.set('pubActs',this.checked);toast(this.checked?'Tus salidas se verán en la comunidad':'Tus salidas serán privadas')"><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.2</p>
+  <div class="sec" style="margin-top:14px"><h3 style="font-size:18px">Ayuda</h3></div>
+  <div class="list">
+    <button class="li" onclick="openHelp()"><span class="em">❓</span><div><b>Cómo funciona</b><small>Preguntas rápidas</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button class="li" onclick="inviteFriends()"><span class="em">📣</span><div><b>Invitar a amigos</b><small>Comparte VeloGo por WhatsApp</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+    <a class="li" style="text-decoration:none;color:inherit" href="privacidad.html"><span class="em">📄</span><div><b>Privacidad y condiciones</b><small>Qué datos guardamos y por qué</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></a>
+    <button class="li" onclick="deleteAccount()"><span class="em">🗑️</span><div><b style="color:var(--red)">Borrar mi cuenta y mis datos</b><small>No se puede deshacer</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+  </div>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.3</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -1697,6 +1712,64 @@ async function admDelete(col,id,rep){
 }
 async function admDismiss(rep){try{await db.collection('reports').doc(rep).delete();loadReports()}catch(e){netErr(e)}}
 
+
+/* ===================================================================
+   v1.3 — INSTALAR · AYUDA · INVITAR · BORRAR CUENTA
+   =================================================================== */
+let installEvt=null;
+const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;renderInstall()});
+window.addEventListener('appinstalled',()=>{installEvt=null;store.set('installed',true);renderInstall();toast('📲 ¡VeloGo instalada!')});
+function renderInstall(){
+  const el=$('installBox');if(!el)return;
+  const show=!isStandalone()&&!store.get('installHide',false)&&(installEvt||isIOS());
+  el.innerHTML=show?`<div class="install"><span style="font-size:28px">📲</span><div><b>Instala VeloGo</b><small>Ábrela como una app, a pantalla completa</small></div><button class="mini ok" onclick="doInstall()">Instalar</button><button class="x" style="width:32px;height:32px" aria-label="Ocultar" onclick="store.set('installHide',true);renderInstall()"><svg class="i" viewBox="0 0 24 24" style="width:16px"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`:'';
+}
+async function doInstall(){
+  if(installEvt){installEvt.prompt();const r=await installEvt.userChoice.catch(()=>null);installEvt=null;renderInstall();return}
+  if(isIOS())toast('En iPhone: pulsa Compartir ⬆️ y luego "Añadir a pantalla de inicio"');
+  else toast('Menú ⋮ del navegador → "Instalar app" o "Añadir a pantalla de inicio"');
+}
+function inviteFriends(){
+  const t=`🚴 Te invito a VeloGo, la app para organizar salidas en bici con la comunidad: día, hora, punto de encuentro, rutas y pelotón en vivo. Es gratis 👇\n${appUrl()}`;
+  if(navigator.share)navigator.share({title:'VeloGo',text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+}
+const HELP=[
+ ['📅','¿Cómo organizo una salida?','Pulsa el botón verde ＋ → "Crear salida". Pon día, hora, punto de salida y de encuentro (puedes marcarlos en el mapa). Publica y compártela por WhatsApp.'],
+ ['✋','¿Cómo me apunto?','Abre la salida (desde Comunidad o desde el enlace de WhatsApp) y pulsa "Me apunto". Puedes añadirla a tu calendario con avisos.'],
+ ['🛰️','¿Qué es el Pelotón en vivo?','El día de la salida pulsa "Empezar salida": todos los apuntados os veis en el mapa y la app avisa si alguien se queda atrás más de 1 km.'],
+ ['🗺️','¿Cómo planifico una ruta?','Rutas → Planificar: de A a B, por etapas o circular. Verás km, desnivel y el perfil. Pulsa "▲ Iniciar" para navegar con voz.'],
+ ['⏺️','¿Cómo grabo una salida?','Rutas → "Rec · INICIAR". Mantén la pantalla encendida. Al terminar, pulsa ⏹ Terminar y se guarda con sus puntos y su foto.'],
+ ['👥','¿Para qué sirve Mi grupo?','Crea un grupo y comparte el código. Podrás hacer salidas "Solo mi grupo" que solo verán ellos.'],
+ ['🔒','¿Cómo no pierdo mis datos?','Perfil → "Guardar mi cuenta con Google". Si cambias de móvil, entra con la misma cuenta.'],
+ ['🆘','¿Y si tengo un problema en ruta?','Comunidad → Alertas de seguridad: llamar al 112 o enviar tu ubicación por WhatsApp. Mientras grabas también tienes el botón SOS y 📡 para que tu familia te siga.'],
+];
+function openHelp(){
+  $('rideBody').innerHTML=sheetHead('❓ Cómo funciona')+HELP.map(([e,q,a])=>`<details class="faq"><summary><span>${e}</span>${q}</summary><p>${a}</p></details>`).join('')+
+   `<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn btn-lime" onclick="inviteFriends()">📣 Invitar a amigos</button><a class="btn btn-line" style="text-decoration:none" href="privacidad.html">📄 Privacidad y condiciones</a></div>`;
+  openRideId=null;openSheet('sh-ride');
+}
+async function deleteAccount(){
+  if(!ready())return;
+  if(!confirm('¿Borrar tu cuenta y tus datos de VeloGo?\n\nSe borrarán tu perfil, puntos, actividades, publicaciones y bicis. Tus puntos ciclistas y rutas compartidas se quedarán para la comunidad (sin tu nombre si lo pides por correo).\n\nNo se puede deshacer.'))return;
+  if((prompt('Para confirmar escribe BORRAR','')||'').trim().toUpperCase()!=='BORRAR'){toast('No se ha borrado nada');return}
+  toast('Borrando tus datos…');window.__deleting=true;
+  try{
+    const u=firebase.auth().currentUser;
+    const a=await actsRef().get();await Promise.all(a.docs.map(d=>d.ref.delete()));
+    const f=await db.collection('feed').where('uid','==',uid).get().catch(()=>({docs:[]}));await Promise.all(f.docs.map(d=>d.ref.delete().catch(()=>{})));
+    for(const r of upcoming().filter(joined)){if(isOwner(r))await db.collection('rides').doc(r.id).delete().catch(()=>{});else await db.collection('rides').doc(r.id).update({['people.'+uid]:FV.delete()}).catch(()=>{})}
+    if(myGroup)await leaveGroup(true);
+    await db.collection('nearby').doc(uid).delete().catch(()=>{});
+    me=null;try{Object.keys(localStorage).filter(k=>k.startsWith('velogo_')).forEach(k=>localStorage.removeItem(k))}catch(e){}
+    await db.collection('users').doc(uid).delete();
+    try{await u.delete()}catch(e){console.warn('auth delete',e)}
+    try{Object.keys(localStorage).filter(k=>k.startsWith('velogo_')).forEach(k=>localStorage.removeItem(k))}catch(e){}
+    alert('Tu cuenta y tus datos se han borrado. ¡Gracias por usar VeloGo!');location.reload();
+  }catch(e){console.error(e);window.__deleting=false;toast('No se pudo borrar todo. Escríbenos a info@obracontrolgps.net')}
+}
+
 /* ===== Más funciones ===== */
 const FEATURES=[
   ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','fn:openNearby()'],['👥','Mi grupo','Tu grupo habitual de salida','fn:openGroup()'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
@@ -2583,7 +2656,7 @@ let onbI=0;
 function showOnb(){if($('onb').classList.contains('show'))return;onbI=0;paintOnb();$('onb').classList.add('show')}
 function paintOnb(){
   const [e,t,p]=ONB[onbI];
-  $('onbSlide').innerHTML=`<div class="big">${e}</div><h2>${t}</h2><p>${p}</p>${onbI===2?'<input class="inp" id="onbName" placeholder="Tu nombre" maxlength="24" autocomplete="given-name">':''}`;
+  $('onbSlide').innerHTML=`<div class="big">${e}</div><h2>${t}</h2><p>${p}</p>${onbI===2?'<input class="inp" id="onbName" placeholder="Tu nombre" maxlength="24" autocomplete="given-name"><small style="color:var(--txt2);max-width:320px">Al empezar aceptas la <a href="privacidad.html" style="color:var(--lime)">privacidad y condiciones</a> de VeloGo.</small>':''}`;
   $('onbDots').innerHTML=ONB.map((_,i)=>`<i class="${i===onbI?'on':''}"></i>`).join('');
   $('onbNext').textContent=onbI===2?'Empezar':'Siguiente';
 }
@@ -2611,6 +2684,7 @@ function startFirebase(){
     // Perfil
     db.collection('users').doc(uid).onSnapshot(s=>{
       if(s.exists&&s.data().name){me={...me,...s.data()};store.set('me',me);$('onb').classList.remove('show')}
+      else if(window.__deleting)return;
       else if(me&&me.name){db.collection('users').doc(uid).set({name:me.name,pts:me.pts||0,created:me.created||0,since:FV.serverTimestamp()},{merge:true}).catch(()=>{})}
       else showOnb();
       paintName();renderStats();renderRank();renderBikeSummary();
@@ -2640,7 +2714,7 @@ function startFirebase(){
 /* ===== Arranque ===== */
 $('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
-$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderBikeSummary();renderGroup();renderFeed();renderBadgeCount();
+$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderBikeSummary();renderInstall();renderGroup();renderFeed();renderBadgeCount();
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
 startFirebase();

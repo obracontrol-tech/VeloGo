@@ -1,6 +1,6 @@
 // VeloGo — Service Worker (Fase 2)
-const CACHE = 'velogo-v12';
-const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
+const CACHE = 'velogo-v13';
+const CORE = ['./', './index.html', './manifest.json', './privacidad.html', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
