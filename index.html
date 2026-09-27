@@ -183,9 +183,27 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .rmap{height:190px;border-radius:var(--r);overflow:hidden;margin-bottom:12px;border:1px solid var(--line);background:#dfe6d6}
 .mk{cursor:pointer;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
 /* Planificador */
-.planpanel{display:none;position:absolute;left:12px;right:12px;bottom:calc(var(--nav-h) + 24px);z-index:6;background:var(--bg);border:1px solid var(--line);border-radius:24px;padding:14px 14px 12px;max-height:56%;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.planpanel{display:none;position:absolute;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);border-radius:28px 28px 0 0;padding:10px 16px calc(16px + env(safe-area-inset-bottom));max-height:62%;overflow-y:auto;box-shadow:0 -10px 30px rgba(0,0,0,.35)}
 #s-rutas.planning .planpanel{display:block}
-#s-rutas.planning .rec,#s-rutas.planning .mbottom{display:none}
+#s-rutas.planning .rec,#s-rutas.planning .mbottom,#s-rutas.planning .mtop{display:none}
+#app.planning .nav{display:none}
+#s-rutas.planning .mside{top:calc(16px + env(safe-area-inset-top))}
+.prow{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pic{width:30px;display:grid;place-items:center;color:var(--txt);flex-shrink:0}
+.pic.num{width:26px;height:26px;margin:0 2px;border-radius:50%;background:var(--lime);color:var(--on-lime);font-weight:800;font-size:13px}
+.pfield{flex:1;min-width:0;min-height:54px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:0 16px;text-align:left;font-size:17px;font-weight:600;display:flex;align-items:center;gap:10px}
+.pfield span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pfield.ph{color:var(--txt2);font-weight:500}
+.dotme{width:18px;height:18px;border-radius:50%;background:#2563EB;border:3px solid #fff;flex-shrink:0;display:inline-block}
+.pbtn{width:48px;height:48px;border-radius:50%;background:var(--card2);border:1px solid var(--line);color:var(--lime);font-size:22px;font-weight:800;display:grid;place-items:center;flex-shrink:0}
+.pacts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pacts button{min-height:52px;border-radius:26px;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--card);border:1px solid var(--line)}
+.pacts .go{background:#2563EB;color:#fff;border-color:#2563EB}
+.pacts .lime{grid-column:1/-1;background:var(--lime);color:var(--on-lime);border-color:var(--lime)}
+.pacts button:disabled{opacity:.4}
+.sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
+.sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
+.sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
 .phead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .phead div{flex:1}
 .phead b{font-size:19px;font-weight:800;display:block}
@@ -320,19 +338,22 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <button onclick="toggleRec()" id="recBtn">INICIAR</button>
   </div>
   <div class="planpanel" id="planPanel">
-    <div class="phead"><div><b id="planTitle">De A a B</b><small id="planHint"></small></div><button class="x" onclick="exitPlanner()" aria-label="Salir del planificador"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
-    <div class="chips" id="loopOpts" style="display:none;margin-bottom:4px">
+    <div class="grab"></div>
+    <div class="phead"><div><b id="planTitle">De A a B</b></div><button class="mini" onclick="exitPlanner()" style="min-height:40px">Cancelar</button></div>
+    <small id="planHint" style="display:none;color:var(--lime);font-weight:600;margin:-4px 0 8px"></small>
+    <div id="pRows"></div>
+    <div class="chips" id="loopOpts" style="display:none;margin:2px 0 6px">
       <button class="chip" data-km="20" onclick="setLoopKm(20)">20 km</button><button class="chip" data-km="40" onclick="setLoopKm(40)">40 km</button><button class="chip" data-km="60" onclick="setLoopKm(60)">60 km</button><button class="chip" data-km="80" onclick="setLoopKm(80)">80 km</button><button class="chip" data-km="100" onclick="setLoopKm(100)">100 km</button>
       <button class="chip" onclick="newLoop()">🔄 Otra vuelta</button>
+    </div>
+    <div class="pacts" id="pActions" style="display:none">
+      <button id="bGo" class="go" onclick="goNav()">▲ Iniciar</button>
+      <button id="bSave" onclick="saveRoute()">💾 Guardar</button>
+      <button id="bUse" class="lime" onclick="useRoute()">📅 Crear salida con esta ruta</button>
     </div>
     <div class="pstats" id="pStats"></div>
     <div id="pProf"></div>
     <div id="pStages"></div>
-    <div class="pbtns">
-      <button id="bUndo" onclick="undoPt()">↩️ Deshacer</button>
-      <button id="bSave" onclick="saveRoute()">💾 Guardar</button>
-      <button id="bUse" class="lime wide" onclick="useRoute()">📅 Crear salida con esta ruta</button>
-    </div>
   </div>
   <div class="mbottom">
     <button class="mb1" onclick="document.getElementById('placeQ').focus()"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Buscar destino</button>
@@ -428,7 +449,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" checked><span></span></label></div>
   <div class="set">Mis actividades públicas <label class="sw"><input type="checkbox" checked><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.4</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.5</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -545,6 +566,15 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 
 <!-- Detalle salida -->
 <div class="sheet" id="sh-ride"><div class="grab"></div><div id="rideBody"></div></div>
+
+<!-- Buscar punto de la ruta -->
+<div class="sheet" id="sh-search" style="z-index:75">
+  <div class="grab"></div>
+  <h2><span id="sTitle">¿A dónde vas?</span> <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <div class="search" style="background:var(--card)"><svg class="i" viewBox="0 0 24 24" style="color:var(--txt2)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="sQ" placeholder="Pueblo, calle, bar, lugar…" enterkeyhint="search" autocomplete="off" aria-label="Buscar lugar"></div>
+  <div class="sopt"><button class="mini" style="justify-content:center" onclick="searchUseHere()">📍 Mi ubicación</button><button class="mini" style="justify-content:center" onclick="searchOnMap()">🗺️ Elegir en el mapa</button></div>
+  <div id="sRes"></div>
+</div>
 
 <!-- Mis rutas -->
 <div class="sheet" id="sh-routes">
@@ -889,7 +919,7 @@ function drawRideMarkers(){
    =================================================================== */
 const MAPBOX_TOKEN='pk.eyJ1Ijoiam1wZWxsZWlkYSIsImEiOiJjbXVpYjFvdGExNGgxMndzYWFpb3dvam5sIn0.kjsEtPRpABc5pTvYUAA5zw';
 const PLAN_T={ab:'De A a B',stages:'Por etapas',loop:'Ruta circular'};
-let plan={active:false,view:false,mode:'ab',pts:[],markers:[],route:null,loopKm:40,seed:1,busy:false,reqId:0,fromCreate:false};
+let plan={active:false,view:false,mode:'ab',start:null,stops:[],dest:null,markers:[],route:null,loopKm:40,seed:1,busy:false,reqId:0,fromCreate:false};
 let formRoute=null;
 
 /* Polilínea codificada (para guardar la ruta ocupando poco) */
@@ -957,47 +987,108 @@ function setLine(m,coords){
 }
 function fitTo(m,coords,pad){if(!m||!coords||!coords.length)return;const b=new maplibregl.LngLatBounds();coords.forEach(p=>b.extend([p[1],p[0]]));m.fitBounds(b,{padding:pad||{top:150,bottom:360,left:40,right:80},maxZoom:16,duration:600})}
 
-/* Abrir / cerrar el planificador */
+/* Abrir / cerrar el planificador — formulario tipo "Salida / Destino" */
+const HERE='Ubicación actual';
+function myLL(){if(meMarker){const l=meMarker.getLngLat();return{lat:l.lat,lng:l.lng,label:HERE}}return null}
+function planWps(){return[plan.start,...plan.stops,plan.dest].filter(Boolean)}
+function setPlanning(on){$('s-rutas').classList.toggle('planning',on);$('app').classList.toggle('planning',on);if(on)rideMarkers.forEach(m=>m.remove());else drawRideMarkers()}
 function startPlanner(mode){
   closeSheets();go('rutas');
   if(!map){toast('El mapa necesita conexión a internet');return}
   plan.active=true;plan.view=false;plan.mode=mode;plan.seed=1;clearPlan(true);
-  $('s-rutas').classList.add('planning');rideMarkers.forEach(m=>m.remove());
-  $('planTitle').textContent=PLAN_T[mode];
-  // Empezar desde tu ubicación si ya la conocemos
-  if(meMarker){const l=meMarker.getLngLat();addPlanPt({lat:l.lat,lng:l.lng})}
-  renderPlan();
+  plan.start=myLL();
+  setPlanning(true);$('planTitle').textContent=PLAN_T[mode];
+  if(!plan.start)locateForPlan();
+  redrawPlanMarkers();renderPlan();
+  if(plan.mode==='loop'&&plan.start)computeRoute();
+  else if(plan.mode!=='loop')setTimeout(()=>openPointSearch('dest'),250);
+}
+function locateForPlan(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(p=>{
+    if(!plan.active||plan.start)return;
+    plan.start={lat:p.coords.latitude,lng:p.coords.longitude,label:HERE};
+    redrawPlanMarkers();renderPlan();computeRoute();
+  },()=>{},{enableHighAccuracy:true,timeout:10000});
 }
 function exitPlanner(){
-  plan.active=false;plan.view=false;clearPlan(true);$('s-rutas').classList.remove('planning');drawRideMarkers();
+  plan.active=false;plan.view=false;clearPlan(true);setPlanning(false);
   if(plan.fromCreate){plan.fromCreate=false;reopenCreate()}
 }
-function clearPlan(silent){plan.markers.forEach(m=>m.remove());plan.markers=[];plan.pts=[];plan.route=null;plan.reqId++;plan.busy=false;setLine(map,null);if(!silent)renderPlan()}
-function undoPt(){if(!plan.pts.length)return;plan.pts.pop();redrawPlanMarkers();computeRoute()}
+function clearPlan(silent){plan.markers.forEach(m=>m.remove());plan.markers=[];plan.start=null;plan.stops=[];plan.dest=null;plan.route=null;plan.reqId++;plan.busy=false;setLine(map,null);if(!silent)renderPlan()}
 
-function addPlanPt(ll){
+/* Tocar el mapa: si falta el destino, lo pone ahí */
+async function addPlanPt(ll){
   if(!plan.active||plan.view)return;
-  if(plan.mode==='loop')plan.pts=[ll];
-  else if(plan.mode==='ab'&&plan.pts.length>=2)plan.pts[1]=ll;
-  else{if(plan.pts.length>=25){toast('Máximo 25 puntos');return}plan.pts.push(ll)}
-  redrawPlanMarkers();computeRoute();
+  const p={lat:ll.lat,lng:ll.lng,label:'Buscando dirección…'};
+  if(plan.mode==='loop'){plan.start=p}
+  else if(!plan.start)plan.start=p;
+  else if(!plan.dest)plan.dest=p;
+  else return;
+  redrawPlanMarkers();renderPlan();computeRoute();
+  p.label=await reverseName(p);renderPlan();
 }
+function swapPts(){if(plan.view)return;[plan.start,plan.dest]=[plan.dest,plan.start];plan.stops.reverse();redrawPlanMarkers();computeRoute()}
+function removeStop(i){plan.stops.splice(i,1);redrawPlanMarkers();computeRoute()}
+function clearDest(){plan.dest=null;redrawPlanMarkers();computeRoute()}
+
 function redrawPlanMarkers(){
   plan.markers.forEach(m=>m.remove());plan.markers=[];
-  const n=plan.pts.length;
-  plan.pts.forEach((p,i)=>{
-    const first=i===0,last=i===n-1&&n>1&&plan.mode!=='loop';
-    const el=document.createElement('div');el.className='ppt'+(first?' a':last?' b':'');
-    el.textContent=first?(plan.mode==='loop'?'⟲':'A'):last?'B':String(i);
+  const list=[];
+  if(plan.start)list.push(['start',plan.start,plan.mode==='loop'?'⟲':'A','a']);
+  plan.stops.forEach((s,i)=>list.push(['stop'+i,s,String(i+1),'']));
+  if(plan.dest&&plan.mode!=='loop')list.push(['dest',plan.dest,'B','b']);
+  list.forEach(([key,p,txt,cls])=>{
+    const el=document.createElement('div');el.className='ppt '+cls;el.textContent=txt;
     const mk=new maplibregl.Marker({element:el,draggable:!plan.view}).setLngLat([p.lng,p.lat]).addTo(map);
-    mk.on('dragend',()=>{const l=mk.getLngLat();plan.pts[i]={lat:l.lat,lng:l.lng};computeRoute()});
+    mk.on('dragend',async()=>{const l=mk.getLngLat();const np={lat:l.lat,lng:l.lng,label:'Buscando dirección…'};setKey(key,np);renderPlan();computeRoute();np.label=await reverseName(np);renderPlan()});
     plan.markers.push(mk);
   });
+}
+function setKey(key,p){if(key==='start')plan.start=p;else if(key==='dest')plan.dest=p;else plan.stops[+key.slice(4)]=p}
+function getKey(key){return key==='start'?plan.start:key==='dest'?plan.dest:key==='new'?null:plan.stops[+key.slice(4)]}
+
+/* Buscador de un punto (salida, destino o parada) */
+let searchKey='dest',searchT;
+function openPointSearch(key){
+  if(plan.view)return;
+  searchKey=key;
+  const ttl={start:'¿Desde dónde sales?',dest:'¿A dónde vas?',new:'Añadir parada'}[key]||'Cambiar parada';
+  $('sTitle').textContent=ttl;$('sQ').value='';$('sRes').innerHTML='';
+  openSheet('sh-search');setTimeout(()=>$('sQ').focus(),250);
+}
+$('sQ').addEventListener('input',()=>{clearTimeout(searchT);const q=$('sQ').value.trim();if(q.length<3){$('sRes').innerHTML='';return}searchT=setTimeout(()=>searchPlaces(q),450)});
+$('sQ').addEventListener('keydown',e=>{if(e.key==='Enter'){clearTimeout(searchT);searchPlaces($('sQ').value.trim())}});
+let lastRes=[];
+async function searchPlaces(q){
+  if(!q)return;$('sRes').innerHTML='<div class="empty">Buscando…</div>';
+  try{
+    const c=(plan.start||myLL()||(map&&{lat:map.getCenter().lat,lng:map.getCenter().lng})||{lat:41.6,lng:0.62});
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=7&countrycodes=es&accept-language=es&viewbox='+(c.lng-1)+','+(c.lat+1)+','+(c.lng+1)+','+(c.lat-1)+'&q='+encodeURIComponent(q));
+    lastRes=await r.json();
+    $('sRes').innerHTML=lastRes.length?lastRes.map((d,i)=>{const a=d.address||{};const main=d.name||a.road||d.display_name.split(',')[0];const sub=[a.road&&a.road!==main?a.road:'',a.village||a.town||a.city||'',a.state||''].filter(Boolean).join(', ');
+      return `<button class="sres" onclick="pickResult(${i})"><span>📍</span><div><b>${esc(main)}</b><small>${esc(sub)}</small></div></button>`}).join(''):'<div class="empty">No se encontró. Prueba añadiendo el pueblo</div>';
+  }catch(e){$('sRes').innerHTML='<div class="empty">Sin conexión</div>'}
+}
+function pickResult(i){const d=lastRes[i];if(!d)return;const a=d.address||{};const main=d.name||a.road||d.display_name.split(',')[0];const town=a.village||a.town||a.city||'';
+  applyPoint({lat:+d.lat,lng:+d.lon,label:[main,town].filter((v,k,x)=>v&&x.indexOf(v)===k).join(', ').slice(0,80)})}
+function searchUseHere(){
+  if(!navigator.geolocation){toast('Ubicación no disponible');return}
+  navigator.geolocation.getCurrentPosition(p=>applyPoint({lat:p.coords.latitude,lng:p.coords.longitude,label:HERE}),()=>toast('Activa la ubicación del móvil'),{enableHighAccuracy:true,timeout:10000});
+}
+function searchOnMap(){
+  const cur=getKey(searchKey)||plan.dest||plan.start;const key=searchKey;
+  closeSheets(true);$('scrim').classList.remove('show');
+  openPickerFor(key==='start'?'Punto de salida':key==='dest'?'Destino':'Parada',key==='start'?'#22C55E':key==='dest'?'#EF4444':'#C8DC3C',cur,(ll,name)=>{searchKey=key;applyPoint({lat:ll.lat,lng:ll.lng,label:name})});
+}
+function applyPoint(p){
+  if(searchKey==='new')plan.stops.push(p);else setKey(searchKey,p);
+  closeSheets();redrawPlanMarkers();renderPlan();computeRoute();
 }
 
 /* Genera los puntos de una ruta circular alrededor de la salida */
 function loopWaypoints(s,km,seed,scale){
-  const R=km/(2*Math.PI)*0.78*(scale||1);                  // km
+  const R=km/(2*Math.PI)*0.78*(scale||1);
   const th=(seed*137.5)%360*Math.PI/180;
   const dLat=d=>d/111.32,dLng=d=>d/(111.32*Math.cos(s.lat*Math.PI/180));
   const C={lat:s.lat+dLat(R*Math.sin(th)),lng:s.lng+dLng(R*Math.cos(th))};
@@ -1013,20 +1104,21 @@ async function mbRoute(wps){
   return{coords:rt.geometry.coordinates.map(c=>[c[1],c[0]]),km:rt.distance/1000,legs:rt.legs.map(l=>l.distance/1000)};
 }
 async function computeRoute(){
-  const need=plan.mode==='loop'?1:2;
-  if(plan.pts.length<need){plan.route=null;setLine(map,null);renderPlan();return}
+  const wps=planWps();
+  const ok=plan.mode==='loop'?!!plan.start:(plan.start&&plan.dest);
+  if(!ok){plan.route=null;setLine(map,null);renderPlan();return}
   if(!MAPBOX_TOKEN||MAPBOX_TOKEN.startsWith('PON_')){toast('Falta la clave de Mapbox para calcular rutas');return}
   const id=++plan.reqId;plan.busy=true;renderPlan();
   try{
     let r;
     if(plan.mode==='loop'){
-      r=await mbRoute(loopWaypoints(plan.pts[0],plan.loopKm,plan.seed));
-      if(Math.abs(r.km-plan.loopKm)/plan.loopKm>0.2){const r2=await mbRoute(loopWaypoints(plan.pts[0],plan.loopKm,plan.seed,plan.loopKm/r.km));if(Math.abs(r2.km-plan.loopKm)<Math.abs(r.km-plan.loopKm))r=r2}
-    }else r=await mbRoute(plan.pts);
+      r=await mbRoute(loopWaypoints(plan.start,plan.loopKm,plan.seed));
+      if(Math.abs(r.km-plan.loopKm)/plan.loopKm>0.2){const r2=await mbRoute(loopWaypoints(plan.start,plan.loopKm,plan.seed,plan.loopKm/r.km));if(Math.abs(r2.km-plan.loopKm)<Math.abs(r.km-plan.loopKm))r=r2}
+    }else r=await mbRoute(wps);
     if(id!==plan.reqId)return;
-    r.mode=plan.mode;r.up=0;r.down=0;
-    setLine(map,r.coords);plan.route=r;renderPlan();
-    if(plan.mode==='loop'||plan.pts.length===2)fitTo(map,r.coords);
+    r.mode=plan.stops.length&&plan.mode!=='loop'?'stages':plan.mode;r.up=0;r.down=0;
+    r.wps=plan.mode==='loop'?[plan.start]:wps;
+    setLine(map,r.coords);plan.route=r;renderPlan();fitTo(map,r.coords,{top:60,bottom:Math.round(window.innerHeight*0.58),left:40,right:90});
     try{await addElevation(r)}catch(e){console.warn('desnivel',e)}
     if(id!==plan.reqId)return;
     r.mins=estMins(r.km,r.up);renderPlan();
@@ -1037,9 +1129,9 @@ async function computeRoute(){
   }finally{if(id===plan.reqId){plan.busy=false;renderPlan()}}
 }
 
-/* Resumen por etapa (modo por etapas) */
+/* Resumen por etapa */
 function stageRows(r){
-  if(!r||!r.legs||r.legs.length<2)return '';
+  if(!r||!r.legs||r.legs.length<2||r.mode==='loop')return '';
   let acc=0;
   return '<div class="stages">'+r.legs.map((km,i)=>{
     const a=acc,b=acc+km;acc=b;let up=0;
@@ -1048,44 +1140,67 @@ function stageRows(r){
   }).join('')+'</div>';
 }
 
-function planHint(){
-  const n=plan.pts.length;
-  if(plan.view)return 'Ruta guardada';
-  if(plan.mode==='ab')return n===0?'Toca el mapa para poner la salida (A)':n===1?'Ahora toca el destino (B)':'Arrastra A o B para cambiar la ruta';
-  if(plan.mode==='stages')return n===0?'Toca el mapa para poner la salida':n===1?'Toca para añadir la primera parada':'Cada toque añade una parada. Arrastra para mover';
-  return n===0?'Toca el mapa donde empieza y acaba la vuelta':'Elige los km. "Otra vuelta" cambia el recorrido';
+/* Tarjeta del planificador */
+const IC={start:'<svg viewBox="0 0 24 24" class="i"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>',
+  dest:'<svg viewBox="0 0 24 24" class="i"><circle cx="12" cy="12" r="9"/><path d="M9 17V7h7l-2 2.5 2 2.5H9"/></svg>'};
+function fieldBtn(key,p,ph){
+  const here=p&&p.label===HERE;
+  return `<button class="pfield${p?'':' ph'}" onclick="openPointSearch('${key}')" ${plan.view?'disabled':''}>${here?'<i class="dotme"></i>':''}<span>${p?esc(p.label):ph}</span></button>`;
 }
 function renderPlan(){
   if(!plan.active)return;
-  const r=plan.route;
-  $('planHint').textContent=plan.busy?'Calculando ruta…':planHint();
-  $('loopOpts').style.display=plan.mode==='loop'&&!plan.view?'flex':'none';
-  $('loopOpts').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',+c.dataset.km===plan.loopKm));
+  const r=plan.route,v=plan.view;
+  let rows='';
+  if(plan.mode==='loop'){
+    rows=`<div class="prow"><span class="pic">${IC.start}</span>${fieldBtn('start',plan.start,'Elige el punto de salida y llegada')}</div>`;
+  }else{
+    rows=`<div class="prow"><span class="pic">${IC.start}</span>${fieldBtn('start',plan.start,'¿Desde dónde sales?')}${v?'':`<button class="pbtn" onclick="swapPts()" aria-label="Intercambiar salida y destino">⇅</button>`}</div>`;
+    plan.stops.forEach((s,i)=>{rows+=`<div class="prow"><span class="pic num">${i+1}</span>${fieldBtn('stop'+i,s,'Parada')}${v?'':`<button class="pbtn" onclick="removeStop(${i})" aria-label="Quitar parada">✕</button>`}</div>`});
+    rows+=`<div class="prow"><span class="pic">${IC.dest}</span>${fieldBtn('dest',plan.dest,'¿A dónde vas?')}${v?'':`<button class="pbtn" onclick="openPointSearch('new')" aria-label="Añadir parada">＋</button>`}</div>`;
+  }
+  $('pRows').innerHTML=rows;
+  $('loopOpts').style.display=plan.mode==='loop'&&!v?'flex':'none';
+  $('loopOpts').querySelectorAll('.chip[data-km]').forEach(c=>c.classList.toggle('on',+c.dataset.km===plan.loopKm));
+  $('planHint').textContent=plan.busy?'Calculando ruta…':v?'Ruta guardada':'';
+  $('planHint').style.display=$('planHint').textContent?'block':'none';
   $('pStats').innerHTML=r?`
     <div><b class="num">${r.km.toFixed(1)}</b><span>km</span></div>
     <div><b class="num">${r.prof?'+'+Math.round(r.up):'…'}</b><span>m subida</span></div>
     <div><b class="num">${r.prof?'−'+Math.round(r.down):'…'}</b><span>m bajada</span></div>
-    <div><b class="num" style="font-size:18px">${r.mins?hm(r.mins):'…'}</b><span>aprox.</span></div>`:'';
+    <div><b class="num" style="font-size:17px">${r.mins?hm(r.mins):'…'}</b><span>aprox.</span></div>`:'';
   $('pStats').style.display=r?'grid':'none';
   $('pProf').innerHTML=r&&r.prof?profileSVG(r.prof):'';
-  $('pStages').innerHTML=plan.mode==='stages'?stageRows(r):'';
-  $('bUndo').style.display=plan.view||plan.mode==='loop'?'none':'flex';
-  $('bUndo').disabled=!plan.pts.length;
-  $('bSave').style.display=plan.view?'none':'flex';
-  ['bSave','bUse'].forEach(i=>$(i).disabled=!r||plan.busy);
+  $('pStages').innerHTML=stageRows(r);
+  $('pActions').style.display=r?'grid':'none';
+  $('bSave').style.display=v?'none':'flex';
+  ['bGo','bSave','bUse'].forEach(i=>$(i).disabled=!r||plan.busy);
   $('bUse').innerHTML=plan.fromCreate?'✓ Añadir a la salida':'📅 Crear salida con esta ruta';
 }
 function setLoopKm(km){plan.loopKm=km;computeRoute()}
 function newLoop(){plan.seed++;computeRoute()}
+
+/* Iniciar: de momento abre la navegación en bici de Google Maps (la propia llega en la Fase 4) */
+function goNav(){
+  const r=plan.route;if(!r)return;
+  const f=p=>(+p.lat).toFixed(6)+','+(+p.lng).toFixed(6);
+  let o,d,w=[];
+  if(r.mode==='loop'||plan.mode==='loop'){
+    const s=r.wps?.[0]||{lat:r.coords[0][0],lng:r.coords[0][1]};o=d=s;
+    [0.25,0.5,0.75].forEach(t=>{const c=r.coords[Math.floor(r.coords.length*t)];w.push({lat:c[0],lng:c[1]})});
+  }else if(r.wps&&r.wps.length>=2){o=r.wps[0];d=r.wps.at(-1);w=r.wps.slice(1,-1)}
+  else{o={lat:r.coords[0][0],lng:r.coords[0][1]};d={lat:r.coords.at(-1)[0],lng:r.coords.at(-1)[1]}}
+  const url='https://www.google.com/maps/dir/?api=1&travelmode=bicycling&origin='+f(o)+'&destination='+f(d)+(w.length?'&waypoints='+w.map(f).join('%7C'):'');
+  window.open(url,'_blank');
+}
 
 /* Guardar ruta (en el móvil) y pasarla a una salida */
 function packRoute(r){
   const step=Math.max(1,Math.ceil(r.coords.length/350));
   const pts=r.coords.filter((_,i)=>i%step===0||i===r.coords.length-1);
   const pr=r.prof?(()=>{const s=Math.max(1,Math.ceil(r.prof.length/120));return r.prof.filter((_,i)=>i%s===0||i===r.prof.length-1)})():[];
-  return{poly:encodePoly(pts),pd:pr.map(p=>+p.d.toFixed(2)),pe:pr.map(p=>Math.round(p.e)),km:+r.km.toFixed(1),up:Math.round(r.up||0),down:Math.round(r.down||0),mins:r.mins||estMins(r.km,r.up||0),mode:r.mode,legs:(r.legs||[]).map(x=>+x.toFixed(1))};
+  return{wps:(r.wps||[]).map(p=>({lat:+(+p.lat).toFixed(6),lng:+(+p.lng).toFixed(6),label:String(p.label||'').slice(0,60)})),poly:encodePoly(pts),pd:pr.map(p=>+p.d.toFixed(2)),pe:pr.map(p=>Math.round(p.e)),km:+r.km.toFixed(1),up:Math.round(r.up||0),down:Math.round(r.down||0),mins:r.mins||estMins(r.km,r.up||0),mode:r.mode,legs:(r.legs||[]).map(x=>+x.toFixed(1))};
 }
-function unpackRoute(p){const c=decodePoly(p.poly);return{coords:c,km:p.km,up:p.up,down:p.down,mins:p.mins,mode:p.mode,legs:p.legs||[],prof:(p.pd||[]).map((d,i)=>({d,e:p.pe[i]}))}}
+function unpackRoute(p){const c=decodePoly(p.poly);return{wps:p.wps||[],coords:c,km:p.km,up:p.up,down:p.down,mins:p.mins,mode:p.mode,legs:p.legs||[],prof:(p.pd||[]).map((d,i)=>({d,e:p.pe[i]}))}}
 const routeName=r=>(PLAN_T[r.mode]||'Ruta')+' · '+r.km.toFixed(0)+' km';
 function saveRoute(){
   if(!plan.route)return;
@@ -1099,7 +1214,7 @@ async function useRoute(){
   formRoute=packRoute(plan.route);
   const s=plan.route.coords[0];formRoute.a={lat:+s[0].toFixed(6),lng:+s[1].toFixed(6)};
   const back=plan.fromCreate;plan.fromCreate=false;
-  plan.active=false;plan.view=false;clearPlan(true);$('s-rutas').classList.remove('planning');drawRideMarkers();
+  plan.active=false;plan.view=false;clearPlan(true);setPlanning(false);
   if(back)reopenCreate();else{const r=formRoute;openCreate();formRoute=r;renderRouteBox()}
   // Si aún no hay punto de salida, usar el inicio de la ruta
   if(!$('cStart').value.trim()){$('cStart').value=await reverseName(formRoute.a);setPicked('start',formRoute.a)}
@@ -1124,11 +1239,11 @@ function pickSaved(id){
 function viewSaved(id){const r=store.get('routes',[]).find(x=>x.id===id);if(r)showRoute(unpackRoute(r))}
 function showRoute(r){
   closeSheets();go('rutas');if(!map)return;
-  plan.active=true;plan.view=true;plan.mode=r.mode||'ab';clearPlan(true);
-  plan.route=r;$('s-rutas').classList.add('planning');rideMarkers.forEach(m=>m.remove());
-  $('planTitle').textContent=PLAN_T[plan.mode]||'Ruta';
-  const s=r.coords[0],e=r.coords.at(-1);plan.pts=[{lat:s[0],lng:s[1]}];if(r.mode!=='loop')plan.pts.push({lat:e[0],lng:e[1]});
-  redrawPlanMarkers();setLine(map,r.coords);setTimeout(()=>fitTo(map,r.coords),100);renderPlan();
+  plan.active=true;plan.view=true;plan.mode=r.mode==='loop'?'loop':'ab';clearPlan(true);
+  plan.route=r;setPlanning(true);$('planTitle').textContent=PLAN_T[r.mode]||'Ruta';
+  const w=r.wps&&r.wps.length?r.wps.map(p=>({...p,label:p.label||'Punto de la ruta'})):[{lat:r.coords[0][0],lng:r.coords[0][1],label:'Salida'},{lat:r.coords.at(-1)[0],lng:r.coords.at(-1)[1],label:'Llegada'}];
+  plan.start=w[0];if(plan.mode!=='loop'){plan.dest=w.at(-1);plan.stops=w.slice(1,-1)}
+  redrawPlanMarkers();setLine(map,r.coords);setTimeout(()=>fitTo(map,r.coords,{top:60,bottom:Math.round(window.innerHeight*0.58),left:40,right:90}),100);renderPlan();
 }
 
 /* Ruta dentro del formulario de salida */
@@ -1147,7 +1262,7 @@ function closePlanSheet(){closeSheets();if(plan.fromCreate){plan.fromCreate=fals
 
 /* ===== Selector de punto con chincheta ===== */
 const pickLL={start:null,meet:null};
-let pmap=null,pWhich='start',pCur=null,pSat=false,pTimer;
+let pmap=null,pWhich='start',pCur=null,pSat=false,pTimer,pickCb=null;
 async function reverseName(ll){
   const fb='Punto en el mapa ('+ll.lat.toFixed(4)+', '+ll.lng.toFixed(4)+')';
   try{
@@ -1165,9 +1280,25 @@ function setPicked(which,ll){
   $(which==='start'?'okStart':'okMeet').classList.add('on');
   $(which==='start'?'mapStart':'mapMeet').classList.add('ok');
 }
+function openPickerFor(kind,color,cur,cb){
+  if(typeof maplibregl==='undefined'){toast('El mapa necesita conexión a internet');return}
+  pickCb=cb;$('pKind').textContent=kind;$('pEmoji').textContent='📍';
+  $('cpin').innerHTML=PIN_SVG(color);$('pQ').value='';$('pAddr').textContent='Buscando dirección…';
+  $('picker').classList.add('show');
+  const st=cur||(meMarker&&{lng:meMarker.getLngLat().lng,lat:meMarker.getLngLat().lat})||(map&&{lng:map.getCenter().lng,lat:map.getCenter().lat})||{lat:41.6176,lng:0.62};
+  initPickMap(st);$('pTitle').style.opacity='1';
+}
+function initPickMap(st){
+  if(!pmap){
+    pmap=new maplibregl.Map({container:'pmap',style:JSON.parse(JSON.stringify(STYLE)),center:[st.lng,st.lat],zoom:16,attributionControl:{compact:true}});
+    pmap.on('movestart',()=>{$('cpin').classList.add('up');$('pTitle').style.opacity='0'});
+    pmap.on('moveend',()=>{$('cpin').classList.remove('up');updatePick()});
+    pmap.on('load',updatePick);
+  }else{setTimeout(()=>{pmap.resize();pmap.jumpTo({center:[st.lng,st.lat],zoom:16});updatePick()},30)}
+}
 function openPicker(which){
   if(typeof maplibregl==='undefined'){toast('El mapa necesita conexión a internet');return}
-  pWhich=which;const isS=which==='start';
+  pickCb=null;pWhich=which;const isS=which==='start';
   $('pKind').textContent=isS?'Punto de salida':'Punto de encuentro';$('pEmoji').textContent=isS?'🚩':'📍';
   $('cpin').innerHTML=PIN_SVG(isS?'#22C55E':'#EF4444');$('pQ').value='';$('pAddr').textContent='Buscando dirección…';
   $('picker').classList.add('show');
@@ -1192,11 +1323,12 @@ function pickLocate(silent){
   navigator.geolocation.getCurrentPosition(p=>{pmap&&pmap.flyTo({center:[p.coords.longitude,p.coords.latitude],zoom:17})},()=>{if(silent!==true)toast('Activa la ubicación del móvil')},{enableHighAccuracy:true,timeout:10000});
 }
 function pickSat(){if(!pmap)return;pSat=!pSat;pmap.setLayoutProperty('sat','visibility',pSat?'visible':'none')}
-function closePicker(){$('picker').classList.remove('show')}
+function closePicker(){$('picker').classList.remove('show');if(pickCb){pickCb=null}}
 async function confirmPick(){
   if(!pCur)return;
   let name=$('pAddr').textContent;
   if(name==='Buscando dirección…')name=await reverseName(pCur);
+  if(pickCb){const cb=pickCb;pickCb=null;$('picker').classList.remove('show');cb(pCur,name);return}
   const inp=$(pWhich==='start'?'cStart':'cMeet');
   if(!inp.value.trim()||pickLL[pWhich]||/^Punto en el mapa|^-?\d+\.\d+,/.test(inp.value))inp.value=name;
   setPicked(pWhich,pCur);closePicker();toast('Punto marcado ✓ Puedes cambiar el nombre si quieres');

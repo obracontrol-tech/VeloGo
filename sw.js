@@ -1,5 +1,5 @@
 // VeloGo — Service Worker (Fase 2)
-const CACHE = 'velogo-v4';
+const CACHE = 'velogo-v5';
 const CORE = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {
