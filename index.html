@@ -25,9 +25,13 @@
   --r:22px; --nav-h:84px;
 }
 [data-theme="light"]{
-  --bg:#F4F6F9; --card:#FFFFFF; --card2:#EEF2F7; --line:#DCE3EC;
-  --lime:#8FA622; --on-lime:#FFFFFF; --txt:#0E1A2B; --txt2:#5B6B80;
+  --bg:#F4F6F9; --card:#FFFFFF; --card2:#E9EEF5; --line:#C9D3DF;
+  --lime:#6F8519; --on-lime:#FFFFFF; --txt:#0B1422; --txt2:#3E4C5E;
 }
+[data-theme="light"] .btn-line,[data-theme="light"] .sheet .btn-line,[data-theme="light"] .screen .btn-line{color:#0B1422!important;background:#FFFFFF;border:1.5px solid #9FB0C4}
+[data-theme="light"] .hero .btn-line{color:#fff!important;background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.45)}
+[data-theme="light"] .mini,[data-theme="light"] .chip:not(.on),[data-theme="light"] .tag{color:#0B1422}
+[data-theme="light"] .li small,[data-theme="light"] .pt,[data-theme="light"] .stat span{color:#3E4C5E}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--txt);overflow:hidden}
@@ -293,6 +297,9 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 [data-theme="light"] .mini{color:var(--txt)}
 [data-theme="light"] .chip{color:var(--txt)}
 [data-theme="light"] .x{color:var(--txt)}
+.dlbar{position:absolute;left:12px;right:12px;top:calc(12px + env(safe-area-inset-top));z-index:95;background:var(--bg);border:1px solid var(--lime);border-radius:18px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.dlbar b{display:block;margin-bottom:8px;font-size:15px}.dlbar small{color:var(--txt2)}
+.offpill{position:absolute;left:16px;top:calc(140px + env(safe-area-inset-top));pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:94;background:var(--bronze);color:#0E1A2B;font-weight:800;font-size:13px;padding:6px 14px;border-radius:20px;white-space:nowrap}
 .sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
 .sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
 .sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -425,6 +432,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <button aria-label="Mi ubicación" onclick="locateMe()"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg></button>
     <button aria-label="Mis rutas" onclick="openRoutes(false)"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg></button>
     <button aria-label="Añadir punto ciclista" onclick="addPoi()" style="font-size:22px">☕</button>
+    <button aria-label="Guardar esta zona sin conexión" onclick="saveViewOffline()" style="font-size:22px">📥</button>
   </div>
   <div class="rec" id="recBox">
     <span><i></i>Rec</span>
@@ -455,6 +463,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
       <button id="bUse" class="lime" onclick="useRoute()">📅 Crear salida con esta ruta</button>
       <button id="bPub" style="grid-column:1/-1" onclick="publishRoute()">🌍 Compartir en la comunidad</button>
       <button class="gm-link" onclick="goGoogle()">Abrir en Google Maps</button>
+      <button class="gm-link" onclick="plan.route&&saveRouteOffline(plan.route.coords,$('planTitle').textContent)">📥 Guardar mapa para usar sin conexión</button>
       <button class="gm-link" onclick="gpxPlan()">⬇️ Descargar GPX (Garmin, Wahoo…)</button>
       <button class="gm-link" id="bDelComm" style="color:var(--red);display:none" onclick="viewingComm&&delCommRoute(viewingComm.id)">Quitar de la comunidad</button>
       <button class="gm-link" id="bRepComm" style="display:none" onclick="viewingComm&&reportContent('routes',viewingComm.id,viewingComm.name)">⚠️ Reportar esta ruta</button>
@@ -573,6 +582,8 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
   <div class="sec" style="margin-top:6px"><h3 style="font-size:18px">Tu cuenta</h3></div>
   <div id="acctBox" style="margin-bottom:16px"></div>
+  <div class="sec"><h3 style="font-size:18px">🗺️ Mapas sin conexión</h3></div>
+  <div id="offBox" style="margin-bottom:16px"></div>
   <div class="sec"><h3 style="font-size:18px">🚲 Mi bici</h3></div>
   <div id="bikeBox" style="margin-bottom:16px"></div>
   <div id="adminBox" style="display:none;margin-bottom:16px"><button class="li" style="border-color:var(--bronze)" onclick="openAdmin()"><span class="em">🛡️</span><div><b>Panel de administración</b><small>Reportes, números y moderación</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button></div>
@@ -586,7 +597,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <a class="li" style="text-decoration:none;color:inherit" href="privacidad.html"><span class="em">📄</span><div><b>Privacidad y condiciones</b><small>Qué datos guardamos y por qué</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></a>
     <button class="li" onclick="deleteAccount()"><span class="em">🗑️</span><div><b style="color:var(--red)">Borrar mi cuenta y mis datos</b><small>No se puede deshacer</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.4.1</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.5</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -788,6 +799,8 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
 </div>
 
+<div id="dlBar" class="dlbar" style="display:none"></div>
+<div id="offPill" class="offpill" style="display:none">📴 Sin conexión · usando mapas guardados</div>
 <div class="toast" id="toast"></div>
 
 <!-- Vista en vivo para la familia (#vivo=ID) -->
@@ -956,7 +969,7 @@ async function openRide(id,keep){
      ${isOwner(r)?'':`<button class="btn ${inR?'btn-line':'btn-lime'}" onclick="toggleJoin('${r.id}')">${inR?'Ya no voy':'✋ Me apunto'}</button>`}
      <button class="btn btn-line" onclick="shareRide('${r.id}')">💬 Compartir por WhatsApp</button>
      ${inR?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="addToCalendar('${r.id}')">📅 Calendario</button><button class="btn btn-line" style="font-size:15px" onclick="addToGoogleCal('${r.id}')">📆 Google Calendar</button></div>`:''}
-     ${r.route?`<button class="btn btn-line" style="font-size:15px" onclick="gpxRide('${r.id}')">⬇️ Descargar GPX (Garmin, Wahoo…)</button>`:''}
+     ${r.route?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="saveRouteOffline(decodePoly(rides.find(x=>x.id==='${r.id}').route.poly),rides.find(x=>x.id==='${r.id}').title||'Salida')">📥 Mapa sin conexión</button><button class="btn btn-line" style="font-size:15px" onclick="gpxRide('${r.id}')">⬇️ GPX</button></div>`:''}
      ${isOwner(r)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="editRide('${r.id}')">✏️ Editar</button><button class="btn btn-line" style="font-size:15px" onclick="notifyChange('${r.id}')">📣 Avisar cambio</button></div><button class="btn" style="color:var(--red)" onclick="cancelRide('${r.id}')">Cancelar salida</button>`:`<button class="btn" style="color:var(--txt2);font-size:14px" onclick="reportContent('rides','${r.id}','${esc(String(r.title||'Salida').replace(/['"\\]/g,''))}')">⚠️ Reportar esta salida</button>`}
    </div>`;
   if(!keep)openSheet('sh-ride');
@@ -969,7 +982,7 @@ function drawRideMap(r){
   const pts=[];if(r.startLL)pts.push(['#22C55E',r.startLL]);if(r.meetLL&&(!r.startLL||r.meetLL.lat!==r.startLL.lat||r.meetLL.lng!==r.startLL.lng))pts.push(['#EF4444',r.meetLL]);
   const rc=r.route?decodePoly(r.route.poly):null;
   const c0=pts.length?[pts[0][1].lng,pts[0][1].lat]:[rc[0][1],rc[0][0]];
-  rideMap=new maplibregl.Map({container:'rideMap',style:JSON.parse(JSON.stringify(STYLE)),center:c0,zoom:15,attributionControl:false,interactive:true});
+  rideMap=newMap({container:'rideMap',center:c0,zoom:15,attributionControl:false,interactive:true});
   if(rc){setLine(rideMap,rc);const b=new maplibregl.LngLatBounds();rc.forEach(p=>b.extend([p[1],p[0]]));pts.forEach(([,ll])=>b.extend([ll.lng,ll.lat]));rideMap.fitBounds(b,{padding:30,duration:0});setTimeout(()=>{if(rideMap){rideMap.resize();rideMap.fitBounds(b,{padding:30,duration:0})}},350);}
   pts.forEach(([c,ll])=>{const el=document.createElement('div');el.className='mk';el.innerHTML=PIN_SVG(c);new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([ll.lng,ll.lat]).addTo(rideMap)});
   if(!rc&&pts.length>1){const b=new maplibregl.LngLatBounds();pts.forEach(([,ll])=>b.extend([ll.lng,ll.lat]));rideMap.fitBounds(b,{padding:50,maxZoom:16,duration:0})}
@@ -1387,7 +1400,7 @@ function openViewer(id){
   if(!db)return;
   $('viewer').classList.add('show');
   if(!viewer){
-    viewer={map:new maplibregl.Map({container:'vmap',style:JSON.parse(JSON.stringify(STYLE)),center:[0.62,41.6],zoom:14,attributionControl:{compact:true}}),mk:null};
+    viewer={map:newMap({container:'vmap',center:[0.62,41.6],zoom:14,attributionControl:{compact:true}}),mk:null};
   }
   viewer.unsub=db.collection('share').doc(id).onSnapshot(s=>{
     if(!s.exists){$('vInfo').innerHTML='<b>Enlace no válido</b><small>Esta salida no existe o ya ha terminado</small>';return}
@@ -1578,7 +1591,7 @@ function openActDetail(id){
   if(actMap){actMap.remove();actMap=null}
   if(a.poly&&typeof maplibregl!=='undefined'){
     const c=decodePoly(a.poly);
-    actMap=new maplibregl.Map({container:'actMap',style:JSON.parse(JSON.stringify(STYLE)),center:[c[0][1],c[0][0]],zoom:13,attributionControl:false});
+    actMap=newMap({container:'actMap',center:[c[0][1],c[0][0]],zoom:13,attributionControl:false});
     setLine(actMap,c,'plan','#60A5FA');const b=new maplibregl.LngLatBounds();c.forEach(p=>b.extend([p[1],p[0]]));actMap.fitBounds(b,{padding:24,duration:0});setTimeout(()=>{if(actMap){actMap.resize();actMap.fitBounds(b,{padding:24,duration:0})}},350);
   }
 }
@@ -1784,6 +1797,99 @@ async function deleteAccount(){
   }catch(e){console.error(e);window.__deleting=false;toast('No se pudo borrar todo. Escríbenos a info@obracontrolgps.net')}
 }
 
+
+/* ===================================================================
+   v1.5 — MAPAS SIN CONEXIÓN (OpenFreeMap: gratis, sin límites y con descarga permitida)
+   =================================================================== */
+const BASE_STYLE='https://tiles.openfreemap.org/styles/liberty';
+const OFM_TJ='https://tiles.openfreemap.org/planet';
+const MAPCACHE='velogo-offline-map';
+function addSat(m){
+  if(!m||m.getSource('sat'))return;
+  const first=(m.getStyle().layers||[]).find(l=>l.type==='symbol');
+  m.addSource('sat',{type:'raster',tiles:['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],tileSize:256,attribution:'© Esri'});
+  m.addLayer({id:'sat',type:'raster',source:'sat',layout:{visibility:'none'}},first?first.id:undefined);
+}
+function newMap(opt){const m=new maplibregl.Map({style:BASE_STYLE,...opt});m.on('load',()=>addSat(m));return m}
+function satToggle(m,on){if(!m)return;if(!m.getLayer('sat'))addSat(m);if(m.getLayer('sat'))m.setLayoutProperty('sat','visibility',on?'visible':'none')}
+
+/* Cálculo de teselas */
+const lon2x=(lon,z)=>Math.floor((lon+180)/360*2**z);
+const lat2y=(lat,z)=>{const r=lat*Math.PI/180;return Math.floor((1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*2**z)};
+function tilesForRoute(coords){
+  const set=new Set();let last=null;
+  for(const p of coords){
+    if(last&&hav(last,p)<0.15)continue;last=p;
+    for(let z=8;z<=14;z++){const x=lon2x(p[1],z),y=lat2y(p[0],z),pad=z>=13?1:0;
+      for(let dx=-pad;dx<=pad;dx++)for(let dy=-pad;dy<=pad;dy++)set.add(z+'/'+(x+dx)+'/'+(y+dy));}
+  }
+  const e=coords.at(-1);for(let z=8;z<=14;z++)set.add(z+'/'+lon2x(e[1],z)+'/'+lat2y(e[0],z));
+  return[...set];
+}
+function tilesForBounds(b,zmin,zmax){
+  const out=[];for(let z=zmin;z<=zmax;z++){
+    const x0=lon2x(b.getWest(),z),x1=lon2x(b.getEast(),z),y0=lat2y(b.getNorth(),z),y1=lat2y(b.getSouth(),z);
+    for(let x=x0;x<=x1;x++)for(let y=y0;y<=y1;y++)out.push(z+'/'+x+'/'+y);
+  }return out;
+}
+
+/* Descarga */
+let dlBusy=false;
+async function saveOffline(tiles,label){
+  if(!('caches' in window)){toast('Este navegador no permite guardar mapas');return}
+  if(!navigator.onLine){toast('Necesitas conexión para descargar el mapa');return}
+  if(dlBusy){toast('Ya hay una descarga en marcha');return}
+  const MAX=2500;if(tiles.length>MAX){toast(`Zona demasiado grande (${tiles.length} partes). Acerca el mapa.`);return}
+  dlBusy=true;
+  try{
+    const tj=await (await fetch(OFM_TJ)).json();const tpl=tj.tiles[0];
+    const style=await (await fetch(BASE_STYLE)).json();
+    const extra=[BASE_STYLE,OFM_TJ];
+    const sp=style.sprite;if(typeof sp==='string')['.json','.png','@2x.json','@2x.png'].forEach(s=>extra.push(sp+s));
+    const fonts=['Noto Sans Regular','Noto Sans Bold','Noto Sans Italic'];
+    fonts.forEach(f=>['0-255','256-511','8192-8447'].forEach(r=>extra.push(style.glyphs.replace('{fontstack}',encodeURIComponent(f)).replace('{range}',r))));
+    const urls=[...extra,...tiles.map(t=>{const[z,x,y]=t.split('/');return tpl.replace('{z}',z).replace('{x}',x).replace('{y}',y)})];
+    const c=await caches.open(MAPCACHE);
+    let done=0,bytes=0,fail=0;showDl(0,urls.length,label);
+    const queue=[...urls];
+    async function worker(){
+      while(queue.length){
+        const u=queue.shift();
+        try{
+          if(!(await c.match(u))){const r=await fetch(u);if(r.ok||r.status===204){const b=await r.clone().blob();bytes+=b.size;await c.put(u,r)}else fail++}
+        }catch(e){fail++}
+        done++;if(done%5===0||done===urls.length)showDl(done,urls.length,label);
+      }
+    }
+    await Promise.all(Array.from({length:6},worker));
+    const list=store.get('offmaps',[]);list.unshift({id:Date.now(),label:String(label).slice(0,50),date:iso(new Date()),n:tiles.length,mb:+(bytes/1048576).toFixed(1)});
+    store.set('offmaps',list.slice(0,30));
+    hideDl();toast(fail>urls.length*0.2?`Guardado con fallos (${fail}). Vuelve a intentarlo con buena cobertura`:`✅ Mapa guardado: "${label}" (${fmtNum(bytes/1048576,1)} MB). Funciona sin conexión`);
+    renderOffmaps();
+  }catch(e){console.error(e);hideDl();toast('No se pudo descargar el mapa. Revisa la conexión')}
+  finally{dlBusy=false}
+}
+function showDl(d,t,l){const el=$('dlBar');el.style.display='block';el.innerHTML=`<b>📥 Guardando mapa: ${esc(l)}</b><div class="gbar"><i style="width:${Math.round(d/t*100)}%"></i></div><small>${d} de ${t}</small>`}
+function hideDl(){$('dlBar').style.display='none'}
+
+function saveRouteOffline(coords,label){if(!coords||coords.length<2){toast('No hay ruta');return}const t=tilesForRoute(coords);saveOffline(t,label||'Ruta')}
+function saveViewOffline(){
+  if(!map)return;const z=Math.round(map.getZoom());
+  if(z<11){toast('Acerca más el mapa (zoom de pueblo o comarca) para guardar la zona');return}
+  const t=tilesForBounds(map.getBounds(),Math.max(8,z-3),14);
+  if(!confirm(`¿Guardar esta zona del mapa para usarla sin conexión?\n\nSon ${t.length} partes (aprox. ${Math.max(1,Math.round(t.length*0.04))} MB).`))return;
+  reverseName({lat:map.getCenter().lat,lng:map.getCenter().lng}).then(n=>saveOffline(t,/^Punto en el mapa/.test(n)?'Zona guardada '+fmtDate(iso(new Date())):'Zona de '+n.split(',').pop().trim()));
+}
+function renderOffmaps(){
+  const el=$('offBox');if(!el)return;const l=store.get('offmaps',[]);
+  el.innerHTML=(l.length?l.slice(0,6).map(m=>`<div class="li" style="cursor:default;margin-bottom:8px"><span class="em">🗺️</span><div><b>${esc(m.label)}</b><small>${fmtDate(m.date)} · ${m.mb} MB</small></div></div>`).join('')+
+    `<button class="mini" style="width:100%;justify-content:center;color:var(--red)" onclick="clearOffmaps()">🗑️ Borrar todos los mapas guardados</button>`
+    :`<div class="empty" style="padding:14px">Aún no has guardado mapas.<br>En Rutas pulsa 📥 o, en una ruta, "Guardar mapa sin conexión".</div>`);
+}
+async function clearOffmaps(){if(!confirm('¿Borrar todos los mapas guardados?'))return;try{await caches.delete(MAPCACHE)}catch(e){}store.set('offmaps',[]);renderOffmaps();toast('Mapas borrados')}
+function netState(){const off=!navigator.onLine;const el=$('offPill');if(el)el.style.display=off?'block':'none'}
+window.addEventListener('online',netState);window.addEventListener('offline',netState);
+
 /* ===== Más funciones ===== */
 const FEATURES=[
   ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','fn:openNearby()'],['👥','Mi grupo','Tu grupo habitual de salida','fn:openGroup()'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
@@ -1816,7 +1922,7 @@ const STYLE={version:8,sources:{
   layers:[{id:'osm',type:'raster',source:'osm'},{id:'sat',type:'raster',source:'sat',layout:{visibility:'none'}}]};
 function initMap(){
   if(map||typeof maplibregl==='undefined'){if(map)setTimeout(()=>map.resize(),50);return}
-  map=new maplibregl.Map({container:'map',style:STYLE,center:[0.6200,41.6176],zoom:12,attributionControl:{compact:true}});
+  map=newMap({container:'map',center:[0.6200,41.6176],zoom:12,attributionControl:{compact:true}});
   locateMe(true);
   map.on('load',()=>{drawRideMarkers();drawPois()});
   map.on('click',e=>{if(plan.active&&!plan.view)addPlanPt({lat:e.lngLat.lat,lng:e.lngLat.lng})});
@@ -2206,7 +2312,7 @@ function openPickerFor(kind,color,cur,cb){
 }
 function initPickMap(st){
   if(!pmap){
-    pmap=new maplibregl.Map({container:'pmap',style:JSON.parse(JSON.stringify(STYLE)),center:[st.lng,st.lat],zoom:16,attributionControl:{compact:true}});
+    pmap=newMap({container:'pmap',center:[st.lng,st.lat],zoom:16,attributionControl:{compact:true}});
     pmap.on('movestart',()=>{$('cpin').classList.add('up');$('pTitle').style.opacity='0'});
     pmap.on('moveend',()=>{$('cpin').classList.remove('up');updatePick()});
     pmap.on('load',updatePick);
@@ -2221,7 +2327,7 @@ function openPicker(which){
   const other=isS?pickLL.meet:pickLL.start;
   const start=pickLL[which]||other||(meMarker&&{lng:meMarker.getLngLat().lng,lat:meMarker.getLngLat().lat})||(map&&{lng:map.getCenter().lng,lat:map.getCenter().lat})||{lat:41.6176,lng:0.62};
   if(!pmap){
-    pmap=new maplibregl.Map({container:'pmap',style:JSON.parse(JSON.stringify(STYLE)),center:[start.lng,start.lat],zoom:16,attributionControl:{compact:true}});
+    pmap=newMap({container:'pmap',center:[start.lng,start.lat],zoom:16,attributionControl:{compact:true}});
     pmap.on('movestart',()=>{$('cpin').classList.add('up');$('pTitle').style.opacity='0'});
     pmap.on('moveend',()=>{$('cpin').classList.remove('up');updatePick()});
     pmap.on('load',updatePick);
@@ -2238,7 +2344,7 @@ function pickLocate(silent){
   if(!navigator.geolocation)return;
   navigator.geolocation.getCurrentPosition(p=>{pmap&&pmap.flyTo({center:[p.coords.longitude,p.coords.latitude],zoom:17})},()=>{if(silent!==true)toast('Activa la ubicación del móvil')},{enableHighAccuracy:true,timeout:10000});
 }
-function pickSat(){if(!pmap)return;pSat=!pSat;pmap.setLayoutProperty('sat','visibility',pSat?'visible':'none')}
+function pickSat(){if(!pmap)return;pSat=!pSat;satToggle(pmap,pSat)}
 function closePicker(){$('picker').classList.remove('show');if(pickCb){pickCb=null}}
 async function confirmPick(){
   if(!pCur)return;
@@ -2259,7 +2365,7 @@ $('pQ').addEventListener('keydown',async e=>{
   }catch(_){toast('Sin conexión')}
 });
 
-function toggleLayer(){if(!map)return;sat=!sat;map.setLayoutProperty('sat','visibility',sat?'visible':'none');toast(sat?'Vista satélite':'Vista mapa')}
+function toggleLayer(){if(!map)return;sat=!sat;satToggle(map,sat);toast(sat?'Vista satélite':'Vista mapa')}
 function segBike(b){b.parentNode.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');if(plan.active&&plan.route){plan.route.mins=estMins(plan.route.km,plan.route.up||0);renderPlan()}}
 $('placeQ').addEventListener('keydown',async e=>{
   if(e.key!=='Enter'||!e.target.value.trim())return;
@@ -2728,7 +2834,7 @@ function startFirebase(){
 /* ===== Arranque ===== */
 $('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
-$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderBikeSummary();renderInstall();renderGroup();renderFeed();renderBadgeCount();
+$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderBikeSummary();renderInstall();renderOffmaps();netState();renderGroup();renderFeed();renderBadgeCount();
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
 startFirebase();
