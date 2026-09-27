@@ -258,6 +258,15 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .bdg span{font-size:36px;display:block}
 .bdg b{display:block;font-size:15px;margin:4px 0 2px}
 .bdg small{color:var(--txt2);font-size:12px}
+.poi{width:34px;height:34px;border-radius:50%;background:#fff;border:2px solid #0E1A2B;display:grid;place-items:center;font-size:18px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.lvside button.on{background:var(--red);border-color:var(--red)}
+#viewer{position:absolute;inset:0;z-index:110;background:var(--bg);display:none}
+#viewer.show{display:block}
+#vmap{position:absolute;inset:0;background:#dfe6d6}
+.vtop{position:absolute;top:calc(12px + env(safe-area-inset-top));left:12px;right:12px;z-index:2;background:var(--bg);border:1px solid var(--line);border-radius:22px;padding:14px 16px;display:flex;gap:14px;align-items:center}
+.vtop .logo{font-size:22px;font-weight:800}.vtop .logo span{color:var(--lime)}
+.vtop #vInfo b{display:block;font-size:16px}.vtop #vInfo small{color:var(--txt2);font-size:13px}
+.vbot{position:absolute;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:2;display:grid;grid-template-columns:1.4fr 1fr;gap:10px}
 .sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
 .sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
 .sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -389,14 +398,14 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <button aria-label="Capas" onclick="toggleLayer()"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button>
     <button aria-label="Mi ubicación" onclick="locateMe()"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg></button>
     <button aria-label="Mis rutas" onclick="openRoutes(false)"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="5" r="2.5"/><path d="M8.5 19H16a3.5 3.5 0 0 0 0-7H8a3.5 3.5 0 0 1 0-7h7.5"/></svg></button>
-    <button aria-label="Descargar zona" onclick="toast('Descarga de mapas: próximamente')"><svg class="i" viewBox="0 0 24 24"><path d="M7 18a5 5 0 1 1 1-9.9A6 6 0 0 1 19.5 10 4 4 0 0 1 18 18"/><path d="M12 12v8m-3-3 3 3 3-3"/></svg></button>
+    <button aria-label="Añadir punto ciclista" onclick="addPoi()" style="font-size:22px">☕</button>
   </div>
   <div class="rec" id="recBox">
     <span><i></i>Rec</span>
     <button onclick="toggleRec()" id="recBtn">INICIAR</button>
   </div>
   <div class="lv lvbanner" id="lvBanner"><span class="ar" id="lvArrow">⬆️</span><div><span class="dd" id="lvDist"></span><span class="tx" id="lvInstr"></span></div></div>
-  <div class="lv lvside"><button onclick="toggleVoice()" id="lvVoice" aria-label="Voz">🔊</button><button onclick="toggleFollow()" aria-label="Centrar en mí"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg></button><button onclick="toggleLayer()" aria-label="Capas"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button></div>
+  <div class="lv lvside"><button onclick="toggleVoice()" id="lvVoice" aria-label="Voz">🔊</button><button onclick="toggleFollow()" aria-label="Centrar en mí"><svg class="i" viewBox="0 0 24 24"><path d="M3 11 21 3l-8 18-2-8-8-2z"/></svg></button><button onclick="toggleLayer()" aria-label="Capas"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 13 9 5 9-5"/></svg></button><button onclick="shareLive()" id="lvShare" aria-label="Compartir en vivo con la familia">📡</button></div>
   <div class="lv lvpanel">
     <span class="lvstate" id="lvState">● GRABANDO</span>
     <div class="lvbig"><b class="num" id="lvSpeed">0</b><span>km/h</span></div>
@@ -416,9 +425,11 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     </div>
     <div class="pacts" id="pActions" style="display:none">
       <button id="bGo" class="go" onclick="goNav()">▲ Iniciar</button>
-      <button id="bSave" onclick="saveRoute()">💾 Guardar</button>
+      <button id="bSave" onclick="plan.view&&viewingComm?saveCommRoute():saveRoute()">💾 Guardar</button>
       <button id="bUse" class="lime" onclick="useRoute()">📅 Crear salida con esta ruta</button>
+      <button id="bPub" style="grid-column:1/-1" onclick="publishRoute()">🌍 Compartir en la comunidad</button>
       <button class="gm-link" onclick="goGoogle()">Abrir en Google Maps</button>
+      <button class="gm-link" id="bDelComm" style="color:var(--red);display:none" onclick="viewingComm&&delCommRoute(viewingComm.id)">Quitar de la comunidad</button>
     </div>
     <div class="pstats" id="pStats"></div>
     <div id="pProf"></div>
@@ -527,9 +538,9 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <div class="row2"><input class="inp" id="nameIn" maxlength="24"><button class="mini" onclick="saveName()">Guardar</button></div>
   </div>
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
-  <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" checked><span></span></label></div>
+  <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" id="swNear" checked onchange="setNear(this.checked)"><span></span></label></div>
   <div class="set">Publicar mis salidas en la comunidad <label class="sw"><input type="checkbox" id="swPub" checked onchange="store.set('pubActs',this.checked);toast(this.checked?'Tus salidas se verán en la comunidad':'Tus salidas serán privadas')"><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.8</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.9</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -732,6 +743,13 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Vista en vivo para la familia (#vivo=ID) -->
+<div id="viewer">
+  <div id="vmap"></div>
+  <div class="vtop"><div class="logo">Velo<span>Go</span></div><div id="vInfo"><b>Cargando…</b></div></div>
+  <div class="vbot"><a class="btn btn-lime" id="vMaps" target="_blank" rel="noopener" style="text-decoration:none">🧭 Cómo llegar</a><button class="btn" style="background:var(--card);border:1px solid var(--line);color:var(--txt)" onclick="closeViewer()">Cerrar</button></div>
+</div>
 
 <!-- Onboarding -->
 <div id="onb">
@@ -1151,11 +1169,184 @@ function openRanking(){
   }).catch(e=>netErr(e));
 }
 
+
+/* ===================================================================
+   FASE 7 — RUTAS DE LA COMUNIDAD · PUNTOS CICLISTAS · CICLISTAS CERCANOS · COMPARTIR EN VIVO
+   =================================================================== */
+const X_SVG='<svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+const sheetHead=t=>`<h2>${t} <button class="x" onclick="closeSheets()" aria-label="Cerrar">${X_SVG}</button></h2>`;
+const kmTxt=d=>d<1?Math.round(d*1000)+' m':fmtNum(d,1)+' km';
+function hereLL(){if(meMarker){const l=meMarker.getLngLat();return[l.lat,l.lng]}if(live.on&&live.pts.length){const p=live.pts.at(-1);return[p[0],p[1]]}if(map){const c=map.getCenter();return[c.lat,c.lng]}return null}
+function gpsOnce(){return new Promise((ok,ko)=>{if(!navigator.geolocation)return ko();navigator.geolocation.getCurrentPosition(p=>ok([p.coords.latitude,p.coords.longitude]),ko,{enableHighAccuracy:true,timeout:10000,maximumAge:60000})})}
+
+/* ---------- Rutas de la comunidad ---------- */
+let commRoutes=[],crFilter='all';
+async function publishRoute(src){
+  if(!ready())return;
+  const r=src||plan.route;if(!r){toast('Primero planifica una ruta');return}
+  const pk=r.poly?r:packRoute(r);
+  const s0=decodePoly(pk.poly)[0];
+  const name=(prompt('Nombre de la ruta para la comunidad',src?.name||routeName(unpackRoute(pk)))||'').trim().slice(0,50);if(!name)return;
+  const town=await reverseName({lat:s0[0],lng:s0[1]}).then(t=>t.split(',').pop().trim()).catch(()=>'');
+  const doc={uid,by:myName(),name,town:town.slice(0,40),km:pk.km,up:pk.up,down:pk.down,mins:pk.mins,mode:pk.mode||'ab',poly:pk.poly.slice(0,15000),pd:pk.pd||[],pe:pk.pe||[],nav:pk.nav||[],wps:pk.wps||[],start:{lat:+s0[0].toFixed(5),lng:+s0[1].toFixed(5)},uses:0,createdAt:FV.serverTimestamp()};
+  db.collection('routes').add(doc).then(()=>{toast('¡Ruta compartida con la comunidad! +15 puntos');addPoints(15)}).catch(netErr);
+}
+async function openCommRoutes(){
+  if(!db){toast('Sin conexión');return}
+  $('rideBody').innerHTML=sheetHead('Rutas de la comunidad')+`
+   <div class="chips" id="crChips" style="margin-bottom:12px">${[['all','Todas'],['s','Hasta 30 km'],['m','30–60 km'],['l','Más de 60 km']].map(([k,t])=>`<button class="chip${crFilter===k?' on':''}" onclick="crFilter='${k}';renderCommRoutes()">${t}</button>`).join('')}</div>
+   <div id="crList"><div class="empty">Cargando rutas…</div></div>`;
+  openRideId=null;openSheet('sh-ride');
+  try{const s=await db.collection('routes').orderBy('createdAt','desc').limit(150).get();commRoutes=s.docs.map(d=>({id:d.id,...d.data()}))}catch(e){console.warn(e);commRoutes=[]}
+  renderCommRoutes();
+}
+function renderCommRoutes(){
+  document.querySelectorAll('#crChips .chip').forEach((c,i)=>c.classList.toggle('on',['all','s','m','l'][i]===crFilter));
+  const me=hereLL();
+  let l=commRoutes.filter(r=>crFilter==='all'||(crFilter==='s'?r.km<=30:crFilter==='m'?r.km>30&&r.km<=60:r.km>60));
+  l.forEach(r=>r._d=me&&r.start?hav(me,[r.start.lat,r.start.lng]):null);
+  l.sort((a,b)=>(a._d??1e9)-(b._d??1e9));
+  $('crList').innerHTML=l.length?l.map(r=>`<div class="feed" style="cursor:pointer" onclick="viewCommRoute('${r.id}')"><div class="fb"><div class="fr">${routeSVG(r.poly,96,96)}</div><div style="flex:1;min-width:0"><div class="ft" style="margin:0 0 4px">${esc(r.name)}</div><small style="color:var(--txt2)">${r.mode==='loop'?'⟲ Circular':'🗺️ '+(PLAN_T[r.mode]||'Ruta')}${r.town?' · '+esc(r.town):''}${r._d!=null?' · a '+kmTxt(r._d):''}</small><div class="chips" style="margin-top:8px"><span class="tag lime">${fmtNum(r.km,1)} km</span><span class="tag">+${r.up} m</span><span class="tag">${hm(r.mins)}</span></div><small style="color:var(--txt2);display:block;margin-top:6px">Por ${esc(r.by)}${r.uses?' · usada '+r.uses+' '+(r.uses===1?'vez':'veces'):''}</small></div></div></div>`).join(''):`<div class="empty">Aún no hay rutas${crFilter!=='all'?' con ese filtro':''}.<br>Planifica una y pulsa "🌍 Compartir".</div>`;
+}
+let viewingComm=null;
+function viewCommRoute(id){
+  const r=commRoutes.find(x=>x.id===id);if(!r)return;
+  showRoute(unpackRoute(r),r);$('planTitle').textContent=r.name;renderPlan();
+}
+function saveCommRoute(){
+  const r=viewingComm;if(!r)return;const list=store.get('routes',[]);
+  list.unshift({id:'rt'+Date.now().toString(36),name:r.name,date:iso(new Date()),km:r.km,up:r.up,down:r.down,mins:r.mins,mode:r.mode,poly:r.poly,pd:r.pd,pe:r.pe,nav:r.nav,wps:r.wps,legs:[]});
+  store.set('routes',list.slice(0,50));toast('Guardada en "Mis rutas"');
+  if(db&&r.id)db.collection('routes').doc(r.id).update({uses:FV.increment(1)}).catch(()=>{});
+}
+function delCommRoute(id){if(!confirm('¿Quitar esta ruta de la comunidad?'))return;db.collection('routes').doc(id).delete().then(()=>{commRoutes=commRoutes.filter(r=>r.id!==id);exitPlanner();toast('Ruta quitada')}).catch(netErr)}
+
+/* ---------- Puntos ciclistas ---------- */
+const POI_CAT={agua:['💧','Fuente de agua'],cafe:['☕','Café / bar'],taller:['🔧','Taller'],mirador:['🔭','Mirador'],tienda:['🛒','Tienda de bicis'],aseo:['🚻','Aseos'],peligro:['⚠️','Peligro']};
+let pois=[],poiMarkers=[],poiUnsub=null,poiShow=store.get('poiShow',true);
+function watchPois(){
+  if(poiUnsub||!db)return;
+  poiUnsub=db.collection('pois').orderBy('createdAt','desc').limit(500).onSnapshot(s=>{pois=s.docs.map(d=>({id:d.id,...d.data()}));drawPois()},e=>console.warn('pois',e));
+}
+function drawPois(){
+  poiMarkers.forEach(m=>m.remove());poiMarkers=[];
+  if(!map||!poiShow||plan.active||live.on&&false)return;
+  pois.forEach(p=>{
+    const c=POI_CAT[p.cat]||['📍',''];const el=document.createElement('div');el.className='poi';el.textContent=c[0];el.title=p.name;
+    el.onclick=e=>{e.stopPropagation();openPoi(p.id)};
+    poiMarkers.push(new maplibregl.Marker({element:el}).setLngLat([p.lng,p.lat]).addTo(map));
+  });
+}
+function openPoi(id){
+  const p=pois.find(x=>x.id===id);if(!p)return;const c=POI_CAT[p.cat]||['📍','Punto'];const h=hereLL();
+  $('rideBody').innerHTML=sheetHead(`${c[0]} ${esc(p.name)}`)+`
+   <p style="color:var(--txt2);margin:-8px 0 14px">${c[1]}${h?' · a '+kmTxt(hav(h,[p.lat,p.lng])):''} · añadido por ${esc(p.by)}</p>
+   ${p.note?`<div class="li" style="cursor:default;margin-bottom:14px"><span class="em">💬</span><div><b style="font-weight:500">${esc(p.note)}</b></div></div>`:''}
+   <div style="display:flex;flex-direction:column;gap:10px">
+    <a class="btn btn-lime" style="text-decoration:none" href="${mapsLink('',{lat:p.lat,lng:p.lng})}" target="_blank" rel="noopener">🧭 Cómo llegar</a>
+    ${p.uid===uid?`<button class="btn" style="color:var(--red)" onclick="delPoi('${p.id}')">Borrar este punto</button>`:''}
+   </div>`;
+  openRideId=null;openSheet('sh-ride');
+}
+function delPoi(id){if(!confirm('¿Borrar este punto?'))return;db.collection('pois').doc(id).delete().then(()=>{closeSheets();toast('Punto borrado')}).catch(netErr)}
+let newPoiLL=null;
+function addPoi(){
+  if(!ready())return;
+  const h=hereLL();
+  openPickerFor('Nuevo punto ciclista','#E0913A',h?{lat:h[0],lng:h[1]}:null,(ll,name)=>{
+    newPoiLL=ll;
+    $('rideBody').innerHTML=sheetHead('Nuevo punto ciclista')+`
+     <p style="color:var(--txt2);margin:-8px 0 12px">📍 ${esc(name)}</p>
+     <div class="f"><label class="l">¿Qué es?</label><div class="chips" id="poiCat">${Object.entries(POI_CAT).map(([k,[e,t]],i)=>`<button class="chip${i===0?' on':''}" data-k="${k}">${e} ${t}</button>`).join('')}</div></div>
+     <div class="f"><label class="l" for="poiName">Nombre</label><input class="inp" id="poiName" maxlength="40" placeholder="Ej. Fuente de la plaza"></div>
+     <div class="f"><label class="l" for="poiNote">Nota <em>(opcional)</em></label><input class="inp" id="poiNote" maxlength="120" placeholder="Ej. Abren a las 7, tienen bomba de aire"></div>
+     <button class="btn btn-lime" onclick="savePoi()">✓ Guardar punto</button>`;
+    openRideId=null;openSheet('sh-ride');chipGroup('poiCat');
+  });
+}
+function savePoi(){
+  const cat=$('poiCat').querySelector('.chip.on').dataset.k;const name=$('poiName').value.trim().slice(0,40)||POI_CAT[cat][1];
+  db.collection('pois').add({uid,by:myName(),cat,name,note:$('poiNote').value.trim().slice(0,120),lat:+newPoiLL.lat.toFixed(6),lng:+newPoiLL.lng.toFixed(6),createdAt:FV.serverTimestamp()})
+   .then(()=>{closeSheets();toast('¡Punto añadido! +5 puntos');addPoints(5);go('rutas')}).catch(netErr);
+}
+function openPois(){
+  const h=hereLL();
+  const l=pois.map(p=>({...p,_d:h?hav(h,[p.lat,p.lng]):null})).sort((a,b)=>(a._d??1e9)-(b._d??1e9)).slice(0,60);
+  $('rideBody').innerHTML=sheetHead('Puntos ciclistas')+`
+   <button class="btn btn-lime" style="margin-bottom:10px" onclick="closeSheets();go('rutas');setTimeout(addPoi,300)">➕ Añadir un punto</button>
+   <div class="set" style="margin-bottom:14px">Ver puntos en el mapa <label class="sw"><input type="checkbox" ${poiShow?'checked':''} onchange="poiShow=this.checked;store.set('poiShow',poiShow);drawPois()"><span></span></label></div>
+   ${l.length?l.map(p=>{const c=POI_CAT[p.cat]||['📍',''];return `<button class="li" style="margin-bottom:8px" onclick="openPoi('${p.id}')"><span class="em">${c[0]}</span><div><b>${esc(p.name)}</b><small>${c[1]}${p._d!=null?' · a '+kmTxt(p._d):''}</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`}).join(''):'<div class="empty">Aún no hay puntos. ¡Añade el primero!</div>'}`;
+  openRideId=null;openSheet('sh-ride');
+}
+
+/* ---------- Ciclistas cercanos (radar) ---------- */
+let nearTimer=null,nearList=[];
+const nearOn=()=>store.get('nearOn',true);
+async function pushNear(){
+  if(!db||!uid||!me||!nearOn()||document.visibilityState!=='visible')return;
+  let p=null;try{p=hereLL()&&meMarker?hereLL():await gpsOnce()}catch(e){return}
+  if(!p)return;
+  db.collection('nearby').doc(uid).set({name:myName(),lat:+p[0].toFixed(3),lng:+p[1].toFixed(3),t:Date.now(),riding:!!live.on,group:me.group||null}).catch(e=>console.warn('near',e));
+}
+function startNear(){if(nearTimer)return;setTimeout(pushNear,3000);nearTimer=setInterval(pushNear,90000)}
+function setNear(on){store.set('nearOn',on);if(!on&&db&&uid)db.collection('nearby').doc(uid).delete().catch(()=>{});else pushNear();toast(on?'Apareces en "Ciclistas cercanos"':'Ya no apareces en "Ciclistas cercanos"')}
+async function openNearby(){
+  if(!db){toast('Sin conexión');return}
+  $('rideBody').innerHTML=sheetHead('Ciclistas cercanos')+`<p style="color:var(--txt2);margin:-8px 0 14px">Ciclistas con VeloGo abierto a menos de 2 km en la última media hora. La posición es aproximada.</p><div id="nearList"><div class="empty">Buscando…</div></div>`;
+  openRideId=null;openSheet('sh-ride');
+  let h=null;try{h=await gpsOnce()}catch(e){h=hereLL()}
+  if(!h){$('nearList').innerHTML='<div class="empty">Activa la ubicación del móvil</div>';return}
+  try{
+    const s=await db.collection('nearby').where('t','>',Date.now()-1800000).limit(300).get();
+    nearList=s.docs.filter(d=>d.id!==uid).map(d=>({id:d.id,...d.data()})).map(n=>({...n,_d:hav(h,[n.lat,n.lng])})).filter(n=>n._d<=2).sort((a,b)=>a._d-b._d);
+  }catch(e){console.warn(e);nearList=[]}
+  $('nearList').innerHTML=nearList.length?nearList.map(n=>`<div class="li" style="cursor:default;margin-bottom:8px"><span class="face" style="margin:0;width:40px;height:40px;flex-shrink:0;background:${colorOf(n.name)}">${ini(n.name)}</span><div><b>${esc(n.name)}${n.riding?' 🚴':''}</b><small>a ~${kmTxt(Math.max(0.1,n._d))} · ${n.riding?'rodando ahora':'hace '+Math.max(1,Math.round((Date.now()-n.t)/60000))+' min'}${n.group&&n.group===me?.group?' · de tu grupo':''}</small></div></div>`).join('')+
+    (myGroup?`<button class="btn btn-lime" style="margin-top:8px" onclick="shareGroup()">👥 Invitar a mi grupo por WhatsApp</button>`:`<button class="btn btn-lime" style="margin-top:8px" onclick="closeSheets();createGroup()">👥 Crear un grupo para rodar juntos</button>`)
+    :`<div class="empty">No hay nadie cerca ahora mismo.${nearOn()?'':'<br>Activa "Aparecer en ciclistas cercanos" en Perfil.'}</div>`;
+}
+
+/* ---------- Compartir salida en vivo (familia) ---------- */
+function shareLive(){
+  if(!live.on){toast('Empieza a grabar (Rec) y pulsa 📡 para compartir');return}
+  if(!live.shareId){live.shareId=Math.random().toString(36).slice(2,10)+Math.random().toString(36).slice(2,6);live.lastShare=0;pushShare(true)}
+  const t=`🚴 Estoy en bici. Sígueme en directo con VeloGo:\n${appUrl()}#vivo=${live.shareId}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+  $('lvShare').classList.add('on');toast('Compartiendo tu posición en vivo');
+}
+function pushShare(force){
+  if(!live.shareId||!db||!uid)return;const p=live.pts.at(-1);const now=Date.now();
+  if(!force&&now-live.lastShare<10000)return;if(!p&&!force)return;
+  live.lastShare=now;
+  db.collection('share').doc(live.shareId).set({uid,name:myName(),lat:p?+p[0].toFixed(6):null,lng:p?+p[1].toFixed(6):null,speed:Math.round(live.speed||0),km:+live.km.toFixed(2),t:now,active:true,started:live.startT},{merge:true}).catch(e=>console.warn('share',e));
+}
+function endShare(L){if(L&&L.shareId&&db)db.collection('share').doc(L.shareId).set({active:false,t:Date.now()},{merge:true}).catch(()=>{})}
+/* Vista para la familia: #vivo=ID */
+let viewer=null;
+function openViewer(id){
+  if(!db)return;
+  $('viewer').classList.add('show');
+  if(!viewer){
+    viewer={map:new maplibregl.Map({container:'vmap',style:JSON.parse(JSON.stringify(STYLE)),center:[0.62,41.6],zoom:14,attributionControl:{compact:true}}),mk:null};
+  }
+  viewer.unsub=db.collection('share').doc(id).onSnapshot(s=>{
+    if(!s.exists){$('vInfo').innerHTML='<b>Enlace no válido</b><small>Esta salida no existe o ya ha terminado</small>';return}
+    const d=s.data();
+    $('vInfo').innerHTML=`<b>${esc(d.name)} ${d.active?'está en bici 🚴':'ha terminado ✅'}</b><small>${fmtNum(d.km||0,1)} km · ${d.active?Math.round(d.speed||0)+' km/h · ':''}actualizado hace ${Math.max(0,Math.round((Date.now()-d.t)/60000))} min</small>`;
+    if(d.lat!=null){
+      if(!viewer.mk){const el=document.createElement('div');el.className='mbr';el.innerHTML=`<b style="background:#C8DC3C">${ini(d.name)}</b><span>${esc(String(d.name).split(' ')[0])}</span>`;viewer.mk=new maplibregl.Marker({element:el,anchor:'bottom'}).setLngLat([d.lng,d.lat]).addTo(viewer.map)}
+      else viewer.mk.setLngLat([d.lng,d.lat]);
+      viewer.map.easeTo({center:[d.lng,d.lat],zoom:Math.max(viewer.map.getZoom(),14),duration:800});
+      $('vMaps').href=mapsLink('',{lat:d.lat,lng:d.lng});
+    }
+  },e=>{$('vInfo').innerHTML='<b>No se pudo cargar</b><small>Revisa la conexión</small>'});
+}
+function closeViewer(){$('viewer').classList.remove('show');if(viewer&&viewer.unsub)viewer.unsub()}
+
 /* ===== Más funciones ===== */
 const FEATURES=[
-  ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','Fase 5'],['👥','Mi grupo','Tu grupo habitual de salida','fn:openGroup()'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
-  ['Compartir y descubrir',[['🗺️','Rutas de la comunidad','Rutas compartidas por otros ciclistas','Fase 7'],['☕','Puntos ciclistas','Fuentes, cafés, talleres y más','Fase 7'],['📰','Actividad de la comunidad','Últimas salidas','fn:openFeed()'],['🎖️','Logros','Tus medallas','fn:openBadges()']]],
-  ['Seguridad',[['🔴','Compartir salida en vivo','Que tu familia vea dónde estás','Fase 7'],['🆘','Alertas de seguridad','112, ubicación y WhatsApp','sos']]]
+  ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','fn:openNearby()'],['👥','Mi grupo','Tu grupo habitual de salida','fn:openGroup()'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
+  ['Compartir y descubrir',[['🗺️','Rutas de la comunidad','Rutas compartidas por otros ciclistas','fn:openCommRoutes()'],['☕','Puntos ciclistas','Fuentes, cafés, talleres y más','fn:openPois()'],['📰','Actividad de la comunidad','Últimas salidas','fn:openFeed()'],['🎖️','Logros','Tus medallas','fn:openBadges()']]],
+  ['Seguridad',[['🔴','Compartir salida en vivo','Que tu familia vea dónde estás','fn:shareLive()'],['🆘','Alertas de seguridad','112, ubicación y WhatsApp','sos']]]
 ];
 $('features').innerHTML=FEATURES.map(([g,items])=>`<div class="grp-t">${g}</div>`+items.map(([e,t,s,p])=>`<button class="li" onclick="${p.startsWith('fn:')?p.slice(3):p==='sos'?'sos()':p==='peloton'?`toast('Se activa al pulsar «Empezar salida» el día de la salida')`:`toast('${t}: próximamente')`}"><span class="em">${e}</span><div><b>${t}</b><small>${s}</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')).join('');
 function sos(){
@@ -1185,7 +1376,7 @@ function initMap(){
   if(map||typeof maplibregl==='undefined'){if(map)setTimeout(()=>map.resize(),50);return}
   map=new maplibregl.Map({container:'map',style:STYLE,center:[0.6200,41.6176],zoom:12,attributionControl:{compact:true}});
   locateMe(true);
-  map.on('load',drawRideMarkers);
+  map.on('load',()=>{drawRideMarkers();drawPois()});
   map.on('click',e=>{if(plan.active&&!plan.view)addPlanPt({lat:e.lngLat.lat,lng:e.lngLat.lng})});
   map.on('dragstart',()=>{if(live.on)live.follow=false});
 }
@@ -1287,9 +1478,9 @@ function fitTo(m,coords,pad){if(!m||!coords||!coords.length)return;const b=new m
 const HERE='Ubicación actual';
 function myLL(){if(meMarker){const l=meMarker.getLngLat();return{lat:l.lat,lng:l.lng,label:HERE}}return null}
 function planWps(){return[plan.start,...plan.stops,plan.dest].filter(Boolean)}
-function setPlanning(on){$('s-rutas').classList.toggle('planning',on);$('app').classList.toggle('planning',on);if(on)rideMarkers.forEach(m=>m.remove());else drawRideMarkers()}
+function setPlanning(on){$('s-rutas').classList.toggle('planning',on);$('app').classList.toggle('planning',on);if(on){rideMarkers.forEach(m=>m.remove());poiMarkers.forEach(m=>m.remove())}else{drawRideMarkers();drawPois()}}
 function startPlanner(mode){
-  closeSheets();go('rutas');
+  viewingComm=null;closeSheets();go('rutas');
   if(!map){toast('El mapa necesita conexión a internet');return}
   plan.active=true;plan.view=false;plan.mode=mode;plan.seed=1;clearPlan(true);
   plan.start=myLL();
@@ -1308,7 +1499,7 @@ function locateForPlan(){
   },()=>{},{enableHighAccuracy:true,timeout:10000});
 }
 function exitPlanner(){
-  plan.active=false;plan.view=false;clearPlan(true);setPlanning(false);
+  viewingComm=null;plan.active=false;plan.view=false;clearPlan(true);setPlanning(false);
   if(plan.fromCreate){plan.fromCreate=false;reopenCreate()}
 }
 function clearPlan(silent){plan.markers.forEach(m=>m.remove());plan.markers=[];plan.start=null;plan.stops=[];plan.dest=null;plan.route=null;plan.reqId++;plan.busy=false;setLine(map,null);if(!silent)renderPlan()}
@@ -1468,7 +1659,7 @@ function renderPlan(){
   $('pProf').innerHTML=r&&r.prof?profileSVG(r.prof):'';
   $('pStages').innerHTML=stageRows(r);
   $('pActions').style.display=r?'grid':'none';
-  $('bSave').style.display=v?'none':'flex';
+  $('bSave').style.display=v&&!viewingComm?'none':'flex';$('bPub').style.display=r&&!v?'flex':'none';$('bDelComm').style.display=v&&viewingComm&&viewingComm.uid===uid?'block':'none';
   ['bGo','bSave','bUse'].forEach(i=>$(i).disabled=!r||plan.busy);$('bGo').innerHTML=plan.view&&r&&r.mode==='track'?'▲ Repetir':'▲ Iniciar';
   $('bUse').innerHTML=plan.fromCreate?'✓ Añadir a la salida':'📅 Crear salida con esta ruta';
 }
@@ -1507,7 +1698,7 @@ async function useRoute(){
 function openRoutes(pick){
   const list=store.get('routes',[]);
   $('routesList').innerHTML=list.length?list.map(r=>`<div class="li" style="cursor:default;margin-bottom:10px"><span class="em">${r.mode==='loop'?'⟲':r.mode==='stages'?'🧭':'🗺️'}</span><div><b>${esc(r.name)}</b><small>${r.km} km · +${r.up} m · ${hm(r.mins)}</small></div>
-    <div style="display:flex;flex-direction:column;gap:6px">${pick?`<button class="mini ok" onclick="pickSaved('${r.id}')">Elegir</button>`:`<button class="mini" onclick="viewSaved('${r.id}')">Ver</button>`}<button class="mini" style="color:var(--red)" onclick="delSaved('${r.id}',${pick?1:0})">Borrar</button></div></div>`).join('')
+    <div style="display:flex;flex-direction:column;gap:6px">${pick?`<button class="mini ok" onclick="pickSaved('${r.id}')">Elegir</button>`:`<button class="mini" onclick="viewSaved('${r.id}')">Ver</button><button class="mini" onclick="publishRoute(store.get('routes',[]).find(x=>x.id==='${r.id}'))">🌍</button>`}<button class="mini" style="color:var(--red)" onclick="delSaved('${r.id}',${pick?1:0})">Borrar</button></div></div>`).join('')
     :`<div class="empty">Aún no tienes rutas guardadas.<br>Planifica una y pulsa "Guardar".</div>`;
   openSheet('sh-routes');
 }
@@ -1519,7 +1710,8 @@ function pickSaved(id){
   if(!$('cStart').value.trim())reverseName(formRoute.a).then(n=>{$('cStart').value=n;setPicked('start',formRoute.a)});
 }
 function viewSaved(id){const r=store.get('routes',[]).find(x=>x.id===id);if(r)showRoute(unpackRoute(r))}
-function showRoute(r){
+function showRoute(r,comm){
+  viewingComm=comm||null;
   closeSheets();go('rutas');if(!map)return;
   plan.active=true;plan.view=true;plan.mode=r.mode==='loop'?'loop':'ab';clearPlan(true);
   plan.route=r;setPlanning(true);$('planTitle').textContent=PLAN_T[r.mode]||'Ruta';
@@ -1719,6 +1911,7 @@ function onFix(pos){
   }
   if(live.nav)navUpdate(p);
   if(live.rideId)pushPos(p,now);
+  if(live.shareId)pushShare();
   renderLive();
 }
 
@@ -1833,6 +2026,7 @@ async function finishLive(save){
   try{L.wake&&L.wake.release()}catch(e){}
   try{speechSynthesis.cancel()}catch(e){}
   if(L.unsub)L.unsub();
+  endShare(L);
   Object.values(L.mMarkers||{}).forEach(m=>m.remove());
   if(L.rideId&&db&&uid)db.collection('rides').doc(L.rideId).collection('live').doc(uid).delete().catch(()=>{});
   $('app').classList.remove('live');$('s-rutas').classList.remove('live');try{map.setPadding({top:0,bottom:0,left:0,right:0})}catch(e){}
@@ -2066,7 +2260,7 @@ function startFirebase(){
       if((me?.group||null)!==(myGroup?.id||null)||!groupUnsub)watchGroup();
       checkBadges();
     },e=>console.error(e));
-    watchFeed();
+    watchFeed();watchPois();startNear();
     // Salidas próximas (en vivo)
     db.collection('rides').where('date','>=',iso(new Date())).orderBy('date').limit(150).onSnapshot(s=>{
       rides=s.docs.map(d=>({id:d.id,...d.data()}));ridesLoaded=true;renderRides();drawRideMarkers();
@@ -2079,6 +2273,8 @@ function startFirebase(){
     // Enlace compartido: #salida=ID
     const hm=location.hash.match(/salida=([\w-]+)/);
     if(hm){setTimeout(()=>{go('comunidad');openRide(hm[1])},600);history.replaceState(null,'',location.pathname)}
+    const hv=location.hash.match(/vivo=([a-z0-9]{8,20})/i);
+    if(hv){history.replaceState(null,'',location.pathname);openViewer(hv[1])}
     const hg=location.hash.match(/grupo=([A-Z0-9]{6})/i);
     if(hg){history.replaceState(null,'',location.pathname);const code=hg[1].toUpperCase();setTimeout(()=>{go('comunidad');if(!me){toast('Pon tu nombre y vuelve a abrir el enlace del grupo');return}if(confirm('¿Unirte al grupo con código '+code+'?'))joinGroup(code)},1500)}
   });
@@ -2087,7 +2283,7 @@ function startFirebase(){
 /* ===== Arranque ===== */
 $('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
-$('swPub').checked=store.get('pubActs',true);renderGroup();renderFeed();renderBadgeCount();
+$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderGroup();renderFeed();renderBadgeCount();
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
 startFirebase();
