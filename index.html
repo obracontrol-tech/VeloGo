@@ -236,6 +236,28 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .mbr{display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
 .mbr b{width:34px;height:34px;border-radius:50%;border:3px solid #fff;display:grid;place-items:center;color:#0E1A2B;font-weight:800}
 .mbr span{font-size:11px;font-weight:800;background:#0E1A2B;color:#fff;padding:1px 6px;border-radius:8px;margin-top:2px}
+.codebox{background:var(--card);border:2px dashed var(--lime);border-radius:20px;text-align:center;padding:14px;margin-bottom:12px}
+.codebox small{color:var(--txt2);display:block}
+.codebox b{font-size:40px;letter-spacing:.2em;color:var(--lime);font-weight:800}
+.feed{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.fh{display:flex;gap:10px;align-items:center}
+.fh>div:nth-child(2){flex:1;min-width:0}
+.fh b{display:block}.fh small{color:var(--txt2);font-size:13px}
+.ft{font-weight:800;font-size:18px;margin:10px 0 8px}
+.fb{display:flex;gap:10px;align-items:center}
+.fs{flex:1;display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.fs b{display:block;font-size:20px;font-weight:800}.fs span{font-size:12px;color:var(--txt2)}
+.fr{width:96px;height:96px;border-radius:14px;background:var(--card2);flex-shrink:0}
+.freact{display:flex;gap:8px;margin-top:10px}
+.freact button{min-height:40px;padding:0 14px;border-radius:20px;background:var(--card2);border:1px solid var(--line);font-size:17px}
+.freact button.on{border-color:var(--lime);background:rgba(200,220,60,.15)}
+.freact span{font-size:14px;font-weight:700;color:var(--txt2)}
+.badges{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.bdg{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 10px;text-align:center;opacity:.4;filter:grayscale(1)}
+.bdg.ok{opacity:1;filter:none;border-color:var(--bronze)}
+.bdg span{font-size:36px;display:block}
+.bdg b{display:block;font-size:15px;margin:4px 0 2px}
+.bdg small{color:var(--txt2);font-size:12px}
 .sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
 .sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
 .sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -436,17 +458,28 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
 
   <div class="block">
+    <div class="sec"><h3>Mi grupo</h3></div>
+    <div id="groupBox"></div>
+  </div>
+
+  <div class="block">
     <div class="sec"><h3>Mis puntos</h3></div>
     <div class="stats">
       <div class="stat"><svg class="i" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8L12 2z"/></svg><b class="num" id="stPts">0</b><span>puntos</span></div>
       <div class="stat"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg><b class="num" id="stRides">0</b><span>salidas en grupo</span></div>
       <div class="stat bronze"><svg class="i" viewBox="0 0 24 24"><path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4zM7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3"/></svg><b id="stLvl">Bronce</b><span>nivel</span></div>
     </div>
+    <button class="li" style="margin-top:10px" onclick="openBadges()"><span class="em">🎖️</span><div><b>Mis logros</b><small id="stBadges">0/14</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
 
   <div class="block">
-    <div class="sec"><h3>Ranking</h3><a onclick="toast('Ranking completo: Fase 5')">Ver ranking completo <svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="m9 6 6 6-6 6"/></svg></a></div>
+    <div class="sec"><h3>Ranking</h3><a onclick="openRanking()">Ver ranking completo <svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="m9 6 6 6-6 6"/></svg></a></div>
     <div class="rank" id="rank"></div>
+  </div>
+
+  <div class="block">
+    <div class="sec"><h3>Actividad</h3><a onclick="openFeed()">Ver todo <svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="m9 6 6 6-6 6"/></svg></a></div>
+    <div id="feedBox"></div>
   </div>
 
   <div class="block">
@@ -495,8 +528,8 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" checked><span></span></label></div>
-  <div class="set">Mis actividades públicas <label class="sw"><input type="checkbox" checked><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.7</p>
+  <div class="set">Publicar mis salidas en la comunidad <label class="sw"><input type="checkbox" id="swPub" checked onchange="store.set('pubActs',this.checked);toast(this.checked?'Tus salidas se verán en la comunidad':'Tus salidas serán privadas')"><span></span></label></div>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.8</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -602,6 +635,11 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <select class="inp" id="cSeats"><option value="0">Sin límite</option><option>5</option><option>10</option><option>15</option><option>20</option><option>30</option></select>
   </div>
 
+  <div class="f" id="visRow" style="display:none">
+    <label class="l">👁️ Quién la ve</label>
+    <div class="chips" id="visChips"><button class="chip on">Toda la comunidad</button><button class="chip">Solo mi grupo</button></div>
+  </div>
+
   <div class="f">
     <label class="l" for="cNote">💬 Nota <em>(opcional)</em></label>
     <textarea class="inp" id="cNote" placeholder="Ej. Llevad luces. Parada para café." maxlength="200"></textarea>
@@ -649,6 +687,13 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
   <input type="file" id="phCam" accept="image/*" capture="environment" hidden onchange="phLoad(event)">
   <input type="file" id="phGal" accept="image/*" hidden onchange="phLoad(event)">
+</div>
+
+<!-- Actividad de la comunidad -->
+<div class="sheet" id="sh-feed">
+  <div class="grab"></div>
+  <h2>Actividad <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <div id="feedAll"></div>
 </div>
 
 <!-- Mis rutas -->
@@ -754,7 +799,7 @@ function togglePlus(){$('sh-plus').classList.contains('show')?closeSheets():open
 /* ===== Chips ===== */
 function chipGroup(id,cb){$(id).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{$(id).querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');cb&&cb(c)})}
 const chipVal=id=>$(id).querySelector('.chip.on')?.textContent;
-chipGroup('typeChips');chipGroup('paceChips');
+chipGroup('typeChips');chipGroup('paceChips');chipGroup('visChips');
 chipGroup('dayChips',c=>{$('cDate').style.display=c.dataset.d==='x'?'block':'none'});
 chipGroup('fltChips',()=>renderAll());
 
@@ -767,14 +812,14 @@ function ready(){
 function netErr(e){console.error(e);toast(navigator.onLine?'No se pudo guardar. Inténtalo de nuevo':'Sin conexión. Se guardará al recuperar cobertura')}
 
 /* ===== Salidas ===== */
-function upcoming(){const t=iso(new Date());return rides.filter(r=>r.date>=t).sort((a,b)=>(a.date+a.hour).localeCompare(b.date+b.hour))}
+function upcoming(){const t=iso(new Date());return rides.filter(r=>r.date>=t&&(r.vis!=='group'||r.group===me?.group||joined(r)||isOwner(r))).sort((a,b)=>(a.date+a.hour).localeCompare(b.date+b.hour))}
 function faces(r){const p=names(r),n=p.length;return `<div class="faces">${p.slice(0,4).map(x=>`<div class="face" style="background:${colorOf(x)}">${ini(x)}</div>`).join('')}<span>${n} ${n===1?'apuntado':'apuntados'}</span></div>`}
 function rideCard(r,full){
   const inR=joined(r);
   const meet=r.meet&&r.meet!==r.start?`<div class="pt"><span class="ico">📍</span><span>Encuentro: <b>${esc(r.meet)}</b>${r.meetHour?' · '+esc(r.meetHour):''}</span></div>`:`<div class="pt"><span class="ico">📍</span><span>Encuentro en el mismo punto</span></div>`;
   return `<div class="ride${full?' full':''}" onclick="openRide('${r.id}')">
     <div class="when"><div><div class="date">${fmtDate(r.date)}</div><div class="hour num">${esc(r.hour)}</div></div>
-    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${r.type?`<span class="tag lime">${esc(r.type)}</span>`:''}${r.km?`<span class="tag num">${+r.km} km</span>`:''}${r.route?`<span class="tag num">+${r.route.up} m</span>`:''}</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">${r.vis==='group'?'<span class="tag">👥 Grupo</span>':''}${r.type?`<span class="tag lime">${esc(r.type)}</span>`:''}${r.km?`<span class="tag num">${+r.km} km</span>`:''}${r.route?`<span class="tag num">+${r.route.up} m</span>`:''}</div></div>
     <div class="title">${esc(r.title||'Salida en grupo')}</div>
     <div class="pt"><span class="ico">🚩</span><span>Salida: <b>${esc(r.start)}</b></span></div>${meet}
     <div class="foot">${faces(r)}<button class="join${inR?' on':''}" onclick="event.stopPropagation();toggleJoin('${r.id}')">${inR?'Ya voy ✓':'Me apunto'}</button></div>
@@ -873,6 +918,7 @@ function openCreate(){
   ['gpsStart','gpsMeet','mapStart','mapMeet'].forEach(i=>$(i).classList.remove('ok'));
   pickLL.start=pickLL.meet=null;$('okStart').classList.remove('on');$('okMeet').classList.remove('on');
   formRoute=null;renderRouteBox();
+  document.querySelectorAll('#visChips .chip').forEach((c,i)=>c.classList.toggle('on',i===0));
   document.querySelectorAll('.err').forEach(e=>e.style.display='none');
   $('cDate').value=iso(addDays(1));$('cDate').min=iso(new Date());
   openSheet('sh-create');
@@ -901,7 +947,7 @@ function publishRide(){
   if(!ok)return;
   const ref=db.collection('rides').doc();
   const r={title:$('cTitle').value.trim().slice(0,40),date,hour,start,meet,meetHour:same?'':($('cMeetHour').value||''),
-    type:chipVal('typeChips')||'',pace:chipVal('paceChips')||'',km:Math.max(0,Math.min(400,Math.round(+$('cKm').value||0))),seats:+$('cSeats').value||0,
+    vis:myGroup&&chipVal('visChips')==='Solo mi grupo'?'group':'all',group:myGroup?myGroup.id:null,type:chipVal('typeChips')||'',pace:chipVal('paceChips')||'',km:Math.max(0,Math.min(400,Math.round(+$('cKm').value||0))),seats:+$('cSeats').value||0,
     note:$('cNote').value.trim().slice(0,200),by:myName(),byUid:uid,people:{[uid]:myName()},createdAt:FV.serverTimestamp(),
     startLL:pickLL.start||null,meetLL:same?(pickLL.start||null):(pickLL.meet||null),route:formRoute?{...formRoute}:null};
   if(r.route){delete r.route.a;if(!r.km)r.km=Math.round(r.route.km)}
@@ -931,13 +977,187 @@ function renderRank(){
   $('rank').innerHTML=l.map((u,i)=>`<div class="rrow${u.id===uid?' me':''}"><div class="pos p${u.out?'':i+1}">${u.out?'·':i+1}</div><div class="face" style="background:${colorOf(u.name)}">${ini(u.name)}</div><div class="nm">${esc(u.name)}${u.id===uid?' (tú)':''}</div><div class="pts num">${u.pts||0} <small>pts</small></div></div>`).join('');
 }
 
+
+/* ===================================================================
+   FASE 5 — MI GRUPO · ACTIVIDAD DE LA COMUNIDAD · LOGROS · RANKING
+   =================================================================== */
+let myGroup=null,groupUnsub=null,feed=[],feedUnsub=null;
+const CODE_CH='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const newCode=()=>Array.from({length:6},()=>CODE_CH[Math.floor(Math.random()*CODE_CH.length)]).join('');
+const gNames=g=>Object.values(g?.members||{});
+
+/* ---- Mi grupo ---- */
+function watchGroup(){
+  if(groupUnsub){groupUnsub();groupUnsub=null}
+  const code=me?.group;
+  if(!db||!code){myGroup=null;renderGroup();return}
+  groupUnsub=db.collection('groups').doc(code).onSnapshot(s=>{
+    myGroup=s.exists?{id:s.id,...s.data()}:null;
+    if(myGroup&&!myGroup.members?.[uid])myGroup=null;
+    renderGroup();renderRides();
+  },e=>{console.warn('grupo',e);myGroup=null;renderGroup()});
+}
+function renderGroup(){
+  const g=myGroup;
+  $('groupBox').innerHTML=g?`<div class="li" onclick="openGroup()" style="border-color:var(--lime)"><span class="em">👥</span><div><b>${esc(g.name)}</b><small>${gNames(g).length} ${gNames(g).length===1?'ciclista':'ciclistas'} · código <b style="display:inline;color:var(--lime);letter-spacing:.1em">${g.id}</b></small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></div>`
+   :`<div class="empty"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Todavía no estás en ningún grupo
+     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%"><button class="btn btn-lime" onclick="createGroup()">➕ Crear grupo</button><button class="btn btn-line" onclick="joinGroupAsk()">🔗 Unirme</button></div></div>`;
+  $('visRow').style.display=g?'block':'none';
+}
+async function createGroup(){
+  if(!ready())return;
+  if(myGroup){openGroup();return}
+  const name=(prompt('Nombre del grupo (ej. Los del domingo)','')||'').trim().slice(0,30);if(!name)return;
+  let code,tries=0;
+  do{code=newCode();tries++;try{const s=await db.collection('groups').doc(code).get();if(!s.exists)break}catch(e){break}}while(tries<5);
+  try{
+    await db.collection('groups').doc(code).set({name,by:myName(),byUid:uid,members:{[uid]:myName()},createdAt:FV.serverTimestamp()});
+    await db.collection('users').doc(uid).set({group:code},{merge:true});
+    me.group=code;store.set('me',me);watchGroup();
+    toast('¡Grupo creado! Comparte el código '+code);setTimeout(openGroup,400);
+  }catch(e){netErr(e)}
+}
+function joinGroupAsk(){const c=(prompt('Escribe el código del grupo (6 letras/números)','')||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(c)joinGroup(c)}
+async function joinGroup(code){
+  if(!ready())return;
+  if(code.length!==6){toast('El código tiene 6 caracteres');return}
+  if(myGroup&&myGroup.id===code){openGroup();return}
+  try{
+    const s=await db.collection('groups').doc(code).get();
+    if(!s.exists){toast('No existe ningún grupo con ese código');return}
+    const g=s.data();
+    if(myGroup&&!confirm(`Ya estás en "${myGroup.name}". ¿Cambiar al grupo "${g.name}"?`))return;
+    if(myGroup&&myGroup.id!==code)await leaveGroup(true);
+    await db.collection('groups').doc(code).update({['members.'+uid]:myName()});
+    await db.collection('users').doc(uid).set({group:code},{merge:true});
+    me.group=code;store.set('me',me);watchGroup();
+    toast(`¡Te has unido a "${g.name}"!`);
+  }catch(e){netErr(e)}
+}
+async function leaveGroup(silent){
+  if(!myGroup)return;
+  const g=myGroup;
+  if(!silent&&!confirm(`¿Salir del grupo "${g.name}"?`))return;
+  try{
+    if(g.byUid===uid&&gNames(g).length<=1)await db.collection('groups').doc(g.id).delete();
+    else await db.collection('groups').doc(g.id).update({['members.'+uid]:FV.delete()});
+    await db.collection('users').doc(uid).set({group:null},{merge:true});
+  }catch(e){console.warn(e)}
+  me.group=null;store.set('me',me);myGroup=null;watchGroup();if(!silent){closeSheets();toast('Has salido del grupo')}
+}
+function shareGroup(){
+  if(!myGroup)return;
+  const t=`🚴 Únete a mi grupo "${myGroup.name}" en VeloGo\n\nCódigo: ${myGroup.id}\n👉 ${appUrl()}#grupo=${myGroup.id}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+}
+function openGroup(){
+  const g=myGroup;if(!g){renderGroup();toast('Crea un grupo o únete con un código');go('comunidad');return}
+  const gr=upcoming().filter(r=>r.group===g.id||(r.byUid&&g.members[r.byUid]));
+  $('rideBody').innerHTML=`<h2>${esc(g.name)} <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+   <div class="codebox"><small>Código del grupo</small><b>${g.id}</b></div>
+   <button class="btn btn-lime" style="margin-bottom:10px" onclick="shareGroup()">💬 Invitar por WhatsApp</button>
+   <button class="btn btn-line" style="margin-bottom:18px" onclick="closeSheets();openCreate();setTimeout(()=>{const c=document.querySelectorAll('#visChips .chip')[1];c&&c.click()},300)">📅 Crear salida para el grupo</button>
+   <div class="sec"><h3 style="font-size:18px">Próximas salidas del grupo</h3></div>
+   ${gr.length?gr.map(r=>rideCard(r,true)).join(''):'<div class="empty" style="margin-bottom:14px">No hay salidas del grupo todavía</div>'}
+   <div class="sec"><h3 style="font-size:18px">Ciclistas (${gNames(g).length})</h3></div>
+   <div class="chips" style="margin-bottom:20px">${Object.entries(g.members).map(([k,n])=>`<span class="tag" style="display:flex;align-items:center;gap:6px;padding:4px 12px 4px 4px"><span class="face" style="width:26px;height:26px;margin:0;background:${colorOf(n)}">${ini(n)}</span>${esc(n)}${k===g.byUid?' 👑':''}</span>`).join('')}</div>
+   <button class="btn" style="color:var(--red)" onclick="leaveGroup()">Salir del grupo</button>`;
+  openRideId=null;openSheet('sh-ride');
+}
+
+/* ---- Actividad de la comunidad (feed) ---- */
+function routeSVG(poly,w,h){
+  if(!poly)return '';const pts=decodePoly(poly);if(pts.length<2)return '';
+  let a=1e9,b=-1e9,c=1e9,d=-1e9;pts.forEach(p=>{a=Math.min(a,p[0]);b=Math.max(b,p[0]);c=Math.min(c,p[1]);d=Math.max(d,p[1])});
+  const k=Math.cos((a+b)/2*Math.PI/180),sw=(d-c)*k||1e-6,sh=(b-a)||1e-6,sc=Math.min((w-16)/sw,(h-16)/sh),ox=(w-sw*sc)/2,oy=(h-sh*sc)/2;
+  const P=pts.map(p=>((ox+(p[1]-c)*k*sc).toFixed(1))+','+((oy+(b-p[0])*sc).toFixed(1))).join(' ');
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true"><polyline points="${P}" fill="none" stroke="#0E1A2B" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"/><polyline points="${P}" fill="none" stroke="#C8DC3C" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+function publishAct(a){
+  if(!db||!uid||!me||!store.get('pubActs',true))return;
+  db.collection('feed').doc(uid+'_'+a.id).set({uid,name:myName(),title:String(a.name||'Salida en bici').slice(0,60),date:a.date,km:+a.km||0,up:+a.up||0,mins:+a.mins||0,group:!!a.group,poly:(a.poly||'').slice(0,15000),likes:{},createdAt:FV.serverTimestamp()}).catch(e=>console.warn('feed',e));
+}
+function watchFeed(){
+  if(feedUnsub||!db)return;
+  feedUnsub=db.collection('feed').orderBy('createdAt','desc').limit(40).onSnapshot(s=>{feed=s.docs.map(d=>({id:d.id,...d.data()}));renderFeed()},e=>console.warn('feed',e));
+}
+const REACT=['👍','❤️','🔥'];
+function feedCard(f){
+  const likes=f.likes||{};const mine=likes[uid];
+  const cnt=REACT.map(e=>[e,Object.values(likes).filter(x=>x===e).length]);
+  const vm=f.mins>0?f.km/(f.mins/60):0;
+  return `<div class="feed">
+    <div class="fh"><div class="face" style="margin:0;width:40px;height:40px;background:${colorOf(f.name)}">${ini(f.name)}</div><div><b>${esc(f.name)}${f.uid===uid?' (tú)':''}</b><small>${fmtDate(f.date)}${f.group?' · 🛰️ en grupo':''}</small></div>${f.uid===uid?`<button class="x" style="width:34px;height:34px" aria-label="Borrar publicación" onclick="delFeed('${f.id}')"><svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:''}</div>
+    <div class="ft">${esc(f.title)}</div>
+    <div class="fb"><div class="fs"><div><b>${fmtNum(f.km,1)}</b><span>km</span></div><div><b>+${f.up}</b><span>m</span></div><div><b>${hm(f.mins||0)}</b><span>tiempo</span></div>${vm?`<div><b>${fmtNum(vm,1)}</b><span>km/h</span></div>`:''}</div>${f.poly?`<div class="fr">${routeSVG(f.poly,96,96)}</div>`:''}</div>
+    <div class="freact">${cnt.map(([e,n])=>`<button class="${mine===e?'on':''}" onclick="react('${f.id}','${e}')">${e} <span>${n||''}</span></button>`).join('')}</div>
+  </div>`;
+}
+function renderFeed(){
+  $('feedBox').innerHTML=feed.length?feed.slice(0,3).map(feedCard).join(''):'<div class="empty">Aún no hay actividad. ¡Graba tu primera salida!</div>';
+  if($('sh-feed').classList.contains('show'))$('feedAll').innerHTML=feed.length?feed.map(feedCard).join(''):'<div class="empty">Aún no hay actividad</div>';
+}
+function openFeed(){$('feedAll').innerHTML=feed.length?feed.map(feedCard).join(''):'<div class="empty">Aún no hay actividad</div>';openSheet('sh-feed')}
+function react(id,e){
+  if(!ready())return;const f=feed.find(x=>x.id===id);if(!f)return;
+  const cur=(f.likes||{})[uid];
+  db.collection('feed').doc(id).update({['likes.'+uid]:cur===e?FV.delete():e}).catch(netErr);
+}
+function delFeed(id){if(!confirm('¿Quitar esta salida de la comunidad? Seguirá en tus Actividades.'))return;db.collection('feed').doc(id).delete().catch(netErr)}
+
+/* ---- Logros ---- */
+const BADGES=[
+  ['🚲','Primera salida','Graba o sube tu primera salida',s=>s.n>=1],
+  ['🔟','10 km','Una salida de 10 km o más',s=>s.max>=10],
+  ['🏅','Medio centenar','Una salida de 50 km o más',s=>s.max>=50],
+  ['💯','Centenario','Una salida de 100 km o más',s=>s.max>=100],
+  ['⛰️','Escalador','500 m de desnivel en una salida',s=>s.maxUp>=500],
+  ['🏔️','Rey de la montaña','1.000 m de desnivel en una salida',s=>s.maxUp>=1000],
+  ['🤝','En compañía','Tu primera salida en grupo',s=>s.done>=1],
+  ['🛰️','Pelotón fiel','5 salidas en grupo',s=>s.done>=5],
+  ['📣','Organizador','Organiza tu primera salida',s=>s.created>=1],
+  ['🎯','Líder de grupo','Organiza 5 salidas',s=>s.created>=5],
+  ['📏','100 km en total','Suma 100 km',s=>s.tot>=100],
+  ['🌍','500 km en total','Suma 500 km',s=>s.tot>=500],
+  ['🚀','1.000 km en total','Suma 1.000 km',s=>s.tot>=1000],
+  ['👥','Con los míos','Únete a un grupo o crea uno',s=>s.group],
+];
+function badgeStats(){return{n:acts.length,max:Math.max(0,...acts.map(a=>+a.km||0)),maxUp:Math.max(0,...acts.map(a=>+a.up||0)),tot:acts.reduce((s,a)=>s+(+a.km||0),0),done:me?.done||0,created:me?.created||0,group:!!me?.group}}
+const earned=()=>{const s=badgeStats();return BADGES.filter(b=>b[3](s)).map(b=>b[1])};
+function checkBadges(){
+  const got=earned(),seen=store.get('badges',null);
+  if(seen===null){store.set('badges',got);return}
+  const nw=got.filter(b=>!seen.includes(b));
+  if(nw.length){store.set('badges',got);setTimeout(()=>{toast('🎖️ ¡Nuevo logro: '+nw.join(', ')+'!');vib&&vib([100,60,100])},1500)}
+  renderBadgeCount();
+}
+function renderBadgeCount(){const n=earned().length;const el=$('stBadges');if(el)el.textContent=n+'/'+BADGES.length}
+function openBadges(){
+  const s=badgeStats();
+  $('rideBody').innerHTML=`<h2>Logros <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <p style="color:var(--txt2);margin:-8px 0 14px">${earned().length} de ${BADGES.length} conseguidos</p>
+  <div class="badges">${BADGES.map(([e,t,d,f])=>{const ok=f(s);return `<div class="bdg${ok?' ok':''}"><span>${e}</span><b>${t}</b><small>${d}</small></div>`}).join('')}</div>`;
+  openRideId=null;openSheet('sh-ride');
+}
+
+/* ---- Ranking completo ---- */
+function openRanking(){
+  if(!db){toast('Sin conexión');return}
+  $('rideBody').innerHTML=`<h2>Ranking <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2><div class="rank" id="rankAll"><div class="rrow"><div class="nm" style="color:var(--txt2)">Cargando…</div></div></div>`;
+  openRideId=null;openSheet('sh-ride');
+  db.collection('users').orderBy('pts','desc').limit(50).get().then(s=>{
+    const l=s.docs.map(d=>({id:d.id,...d.data()})).filter(u=>u.name);
+    $('rankAll').innerHTML=l.map((u,i)=>`<div class="rrow${u.id===uid?' me':''}"><div class="pos p${i+1}">${i+1}</div><div class="face" style="background:${colorOf(u.name)}">${ini(u.name)}</div><div class="nm">${esc(u.name)}${u.id===uid?' (tú)':''}<small style="display:block;color:var(--txt2);font-weight:500;font-size:12px">Nivel ${level(u.pts||0)}</small></div><div class="pts num">${u.pts||0} <small>pts</small></div></div>`).join('')||'<div class="rrow"><div class="nm">Aún no hay ciclistas</div></div>';
+  }).catch(e=>netErr(e));
+}
+
 /* ===== Más funciones ===== */
 const FEATURES=[
-  ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','Fase 5'],['👥','Mi grupo','Tu grupo habitual de salida','Fase 5'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
-  ['Compartir y descubrir',[['🗺️','Rutas de la comunidad','Rutas compartidas por otros ciclistas','Fase 7'],['☕','Puntos ciclistas','Fuentes, cafés, talleres y más','Fase 7'],['📰','Actividad de la comunidad','Últimas salidas','Fase 5'],['🎖️','Logros','Tus medallas','Fase 5']]],
+  ['Rodar en grupo',[['📡','Ciclistas cercanos','Quién rueda a menos de 2 km','Fase 5'],['👥','Mi grupo','Tu grupo habitual de salida','fn:openGroup()'],['🛰️','Pelotón en vivo','GPS en vivo de tu grupo','peloton']]],
+  ['Compartir y descubrir',[['🗺️','Rutas de la comunidad','Rutas compartidas por otros ciclistas','Fase 7'],['☕','Puntos ciclistas','Fuentes, cafés, talleres y más','Fase 7'],['📰','Actividad de la comunidad','Últimas salidas','fn:openFeed()'],['🎖️','Logros','Tus medallas','fn:openBadges()']]],
   ['Seguridad',[['🔴','Compartir salida en vivo','Que tu familia vea dónde estás','Fase 7'],['🆘','Alertas de seguridad','112, ubicación y WhatsApp','sos']]]
 ];
-$('features').innerHTML=FEATURES.map(([g,items])=>`<div class="grp-t">${g}</div>`+items.map(([e,t,s,p])=>`<button class="li" onclick="${p==='sos'?'sos()':p==='peloton'?`toast('Se activa al pulsar «Empezar salida» el día de la salida')`:`toast('${t}: próximamente')`}"><span class="em">${e}</span><div><b>${t}</b><small>${s}</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')).join('');
+$('features').innerHTML=FEATURES.map(([g,items])=>`<div class="grp-t">${g}</div>`+items.map(([e,t,s,p])=>`<button class="li" onclick="${p.startsWith('fn:')?p.slice(3):p==='sos'?'sos()':p==='peloton'?`toast('Se activa al pulsar «Empezar salida» el día de la salida')`:`toast('${t}: próximamente')`}"><span class="em">${e}</span><div><b>${t}</b><small>${s}</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`).join('')).join('');
 function sos(){
   openRideId=null;
   $('rideBody').innerHTML=`<h2>Alertas de seguridad <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
@@ -1628,7 +1848,8 @@ async function finishLive(save){
   const a={id:Date.now(),name:title,date:iso(new Date(L.startT)),km:+L.km.toFixed(1),up:Math.round(r.up||L.up),mins,group:!!L.rideId,...pk};
   acts.unshift(a);store.set('acts',acts.slice(0,200));
   const gain=Math.min(300,Math.round(L.km))+10+(L.rideId?30:0);
-  addPoints(gain,L.rideId?{done:FV.increment(1)}:null);
+  addPoints(gain,L.rideId?{done:FV.increment(1)}:null);if(L.rideId&&me)me.done=(me.done||0)+1;
+  publishAct(a);checkBadges();
   renderActs();go('actividades');
   toast(`✅ Guardada: ${a.km} km · +${gain} puntos`);
   setTimeout(()=>openPhoto(a.id,true),700);
@@ -1772,11 +1993,11 @@ $('fileIn').onchange=async e=>{
     const t0=pts[0][3]?new Date(pts[0][3]):new Date(),t1=pts.at(-1)[3]?new Date(pts.at(-1)[3]):null;
     const mins=t1?Math.round((t1-t0)/60000):0;
     const name=xml.getElementsByTagName('name')[0]?.textContent||f.name.replace(/\.(gpx|tcx)$/i,'');
-    const a={id:Date.now(),name,date:iso(t0),km:+km.toFixed(1),up:Math.round(up),mins};
+    const a={id:Date.now(),name,date:iso(t0),km:+km.toFixed(1),up:Math.round(up),mins,...packRoute({coords:pts.map(p=>[p[0],p[1],isNaN(p[2])?0:p[2]]),km,up,down:0,mins,mode:'track',legs:[]})};a.km=+km.toFixed(1);a.up=Math.round(up);
     if(!confirm(`${name}\n\n📏 ${a.km} km\n⛰️ ${a.up} m de desnivel${mins?`\n⏱️ ${Math.floor(mins/60)} h ${mins%60} min\n⚡ ${(km/(mins/60)).toFixed(1)} km/h de media`:''}\n\n¿Guardar esta actividad?`))return;
     acts.unshift(a);store.set('acts',acts);
     const gain=Math.min(300,Math.round(km))+10;addPoints(gain);
-    renderActs();toast(`Actividad guardada · +${gain} puntos`);
+    renderActs();publishAct(a);checkBadges();toast(`Actividad guardada · +${gain} puntos`);
   }catch(_){toast('No pudimos leer este archivo. Comprueba que sea GPX o TCX.')}
 };
 function renderActs(){
@@ -1797,6 +2018,7 @@ function saveName(){
   const b=db.batch();
   b.set(db.collection('users').doc(uid),{name:v},{merge:true});
   upcoming().filter(joined).forEach(r=>{const u={['people.'+uid]:v};if(isOwner(r))u.by=v;b.update(db.collection('rides').doc(r.id),u)});
+  if(myGroup)b.update(db.collection('groups').doc(myGroup.id),{['members.'+uid]:v});
   b.commit().catch(netErr);toast('Nombre guardado');
 }
 function setTheme(light){document.documentElement.dataset.theme=light?'light':'dark';$('swLight').checked=light;store.set('light',light);document.querySelector('meta[name=theme-color]').content=light?'#F4F6F9':'#0E1A2B'}
@@ -1841,7 +2063,10 @@ function startFirebase(){
       else if(me&&me.name){db.collection('users').doc(uid).set({name:me.name,pts:me.pts||0,created:me.created||0,since:FV.serverTimestamp()},{merge:true}).catch(()=>{})}
       else showOnb();
       paintName();renderStats();renderRank();
+      if((me?.group||null)!==(myGroup?.id||null)||!groupUnsub)watchGroup();
+      checkBadges();
     },e=>console.error(e));
+    watchFeed();
     // Salidas próximas (en vivo)
     db.collection('rides').where('date','>=',iso(new Date())).orderBy('date').limit(150).onSnapshot(s=>{
       rides=s.docs.map(d=>({id:d.id,...d.data()}));ridesLoaded=true;renderRides();drawRideMarkers();
@@ -1854,12 +2079,15 @@ function startFirebase(){
     // Enlace compartido: #salida=ID
     const hm=location.hash.match(/salida=([\w-]+)/);
     if(hm){setTimeout(()=>{go('comunidad');openRide(hm[1])},600);history.replaceState(null,'',location.pathname)}
+    const hg=location.hash.match(/grupo=([A-Z0-9]{6})/i);
+    if(hg){history.replaceState(null,'',location.pathname);const code=hg[1].toUpperCase();setTimeout(()=>{go('comunidad');if(!me){toast('Pon tu nombre y vuelve a abrir el enlace del grupo');return}if(confirm('¿Unirte al grupo con código '+code+'?'))joinGroup(code)},1500)}
   });
 }
 
 /* ===== Arranque ===== */
 $('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
+$('swPub').checked=store.get('pubActs',true);renderGroup();renderFeed();renderBadgeCount();
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
 startFirebase();
