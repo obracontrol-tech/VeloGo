@@ -496,7 +496,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" checked><span></span></label></div>
   <div class="set">Mis actividades públicas <label class="sw"><input type="checkbox" checked><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.6</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 0.7</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -621,6 +621,34 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="search" style="background:var(--card)"><svg class="i" viewBox="0 0 24 24" style="color:var(--txt2)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="sQ" placeholder="Pueblo, calle, bar, lugar…" enterkeyhint="search" autocomplete="off" aria-label="Buscar lugar"></div>
   <div class="sopt"><button class="mini" style="justify-content:center" onclick="searchUseHere()">📍 Mi ubicación</button><button class="mini" style="justify-content:center" onclick="searchOnMap()">🗺️ Elegir en el mapa</button></div>
   <div id="sRes"></div>
+</div>
+
+<!-- Foto con tus datos -->
+<div class="sheet" id="sh-photo">
+  <div class="grab"></div>
+  <h2><span id="phTitle">Foto con tus datos</span> <button class="x" onclick="closeSheets()" aria-label="Cerrar"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button></h2>
+  <div id="phStep1">
+    <p style="color:var(--txt2);margin:-8px 0 16px" id="phSub"></p>
+    <p style="font-weight:700;font-size:18px;margin-bottom:12px">📸 ¿Quieres una foto con tus datos para compartir?</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-lime" onclick="phPick(true)">📷 Hacer una foto</button>
+      <button class="btn btn-line" onclick="phPick(false)">🖼️ Elegir de la galería</button>
+      <button class="btn btn-line" onclick="phNoPhoto()">🗺️ Solo el recorrido (sin foto)</button>
+      <button class="btn" style="color:var(--txt2)" onclick="closeSheets()">Ahora no</button>
+    </div>
+  </div>
+  <div id="phStep2" style="display:none">
+    <div class="chips" id="phFmt" style="margin-bottom:12px"><button class="chip on" data-f="story" onclick="phSetFmt('story')">Historia 9:16</button><button class="chip" data-f="post" onclick="phSetFmt('post')">Publicación 4:5</button></div>
+    <img id="phPrev" alt="Vista previa de la foto con tus datos" style="width:100%;border-radius:18px;border:1px solid var(--line);display:block;margin-bottom:12px">
+    <canvas id="phCanvas" style="display:none"></canvas>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn btn-lime" style="grid-column:1/-1" onclick="phShare()">📤 Compartir</button>
+      <button class="btn btn-line" onclick="phDownload()">⬇️ Guardar</button>
+      <button class="btn btn-line" onclick="$('phStep1').style.display='block';$('phStep2').style.display='none'">🔄 Otra foto</button>
+    </div>
+  </div>
+  <input type="file" id="phCam" accept="image/*" capture="environment" hidden onchange="phLoad(event)">
+  <input type="file" id="phGal" accept="image/*" hidden onchange="phLoad(event)">
 </div>
 
 <!-- Mis rutas -->
@@ -1603,6 +1631,7 @@ async function finishLive(save){
   addPoints(gain,L.rideId?{done:FV.increment(1)}:null);
   renderActs();go('actividades');
   toast(`✅ Guardada: ${a.km} km · +${gain} puntos`);
+  setTimeout(()=>openPhoto(a.id,true),700);
 }
 
 /* Botones que arrancan el modo en vivo */
@@ -1632,6 +1661,98 @@ function openAct(id){
   showRoute(unpackRoute({...a,mode:'track'}));$('planTitle').textContent=a.name;
 }
 window.addEventListener('beforeunload',e=>{if(live.on){e.preventDefault();e.returnValue=''}});
+/* ===================================================================
+   FOTO CON TUS DATOS (tipo "story") — se genera en el móvil, no se sube a ningún sitio
+   =================================================================== */
+let phAct=null,phImg=null,phFmt='story',phBlob=null;
+const fmtNum=(n,d)=>Number(n).toFixed(d).replace('.',',');
+function openPhoto(id,auto){
+  phAct=acts.find(x=>x.id===id);if(!phAct)return;
+  phImg=null;phBlob=null;
+  $('phStep1').style.display='block';$('phStep2').style.display='none';
+  $('phTitle').textContent=auto?'¡Salida guardada! 🎉':'Foto con tus datos';
+  $('phSub').textContent=`${fmtNum(phAct.km,2)} km · ${hm(phAct.mins||0)}${phAct.up?' · +'+phAct.up+' m':''}`;
+  openSheet('sh-photo');
+}
+function phPick(camera){const i=$(camera?'phCam':'phGal');i.value='';i.click()}
+function phLoad(e){
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const url=URL.createObjectURL(f);const img=new Image();
+  img.onload=()=>{phImg=img;phRender()};img.onerror=()=>toast('No se pudo abrir la foto');img.src=url;
+}
+function phNoPhoto(){phImg=null;phRender()}
+function phSetFmt(f){phFmt=f;document.querySelectorAll('#phFmt .chip').forEach(c=>c.classList.toggle('on',c.dataset.f===f));phRender()}
+
+async function phRender(){
+  $('phStep1').style.display='none';$('phStep2').style.display='block';
+  try{await document.fonts.load('800 60px "Plus Jakarta Sans"');await document.fonts.load('600 30px "Plus Jakarta Sans"')}catch(e){}
+  const a=phAct,W=1080,H=phFmt==='story'?1920:1350;
+  const cv=$('phCanvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
+  const F=(w,s)=>`${w} ${s}px "Plus Jakarta Sans", system-ui, sans-serif`;
+  // Fondo: foto recortada a pantalla completa o degradado VeloGo
+  if(phImg){
+    const r=Math.max(W/phImg.naturalWidth,H/phImg.naturalHeight),iw=phImg.naturalWidth*r,ih=phImg.naturalHeight*r;
+    g.drawImage(phImg,(W-iw)/2,(H-ih)/2,iw,ih);
+  }else{
+    const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,'#16263D');bg.addColorStop(1,'#0B1422');g.fillStyle=bg;g.fillRect(0,0,W,H);
+  }
+  // Sombras para que se lean los textos
+  let gr=g.createLinearGradient(0,0,0,260);gr.addColorStop(0,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,W,260);
+  gr=g.createLinearGradient(0,H*0.42,0,H);gr.addColorStop(0,'rgba(0,0,0,0)');gr.addColorStop(0.45,'rgba(0,0,0,.55)');gr.addColorStop(1,'rgba(0,0,0,.85)');g.fillStyle=gr;g.fillRect(0,H*0.42,W,H*0.58);
+  g.textBaseline='alphabetic';g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=12;
+  // Marca VeloGo arriba a la derecha y fecha a la izquierda
+  g.font=F(800,64);g.textAlign='right';
+  const goW=g.measureText('Go').width;g.fillStyle='#C8DC3C';g.fillText('Go',W-70,130);g.fillStyle='#fff';g.fillText('Velo',W-70-goW,130);
+  g.textAlign='left';g.font=F(600,36);g.fillStyle='rgba(255,255,255,.9)';
+  const d=new Date(a.date+'T12:00');g.fillText(d.toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'}),70,122);
+  // Recorrido
+  const pts=a.poly?decodePoly(a.poly):null;
+  if(pts&&pts.length>1){
+    const box=phImg?{x:W-70-330,y:phFmt==='story'?H*0.46:H*0.20,w:330,h:330}:{x:140,y:H*0.16,w:W-280,h:phFmt==='story'?H*0.40:H*0.34};
+    let mnLa=1e9,mxLa=-1e9,mnLg=1e9,mxLg=-1e9;pts.forEach(p=>{mnLa=Math.min(mnLa,p[0]);mxLa=Math.max(mxLa,p[0]);mnLg=Math.min(mnLg,p[1]);mxLg=Math.max(mxLg,p[1])});
+    const k=Math.cos(((mnLa+mxLa)/2)*Math.PI/180);const sw=(mxLg-mnLg)*k||1e-6,sh=(mxLa-mnLa)||1e-6;
+    const sc=Math.min(box.w/sw,box.h/sh),ox=box.x+(box.w-sw*sc)/2,oy=box.y+(box.h-sh*sc)/2;
+    const X=p=>ox+(p[1]-mnLg)*k*sc,Y=p=>oy+(mxLa-p[0])*sc;
+    g.lineJoin='round';g.lineCap='round';
+    g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p),Y(p)):g.moveTo(X(p),Y(p)));
+    g.strokeStyle='rgba(14,26,43,.85)';g.lineWidth=phImg?16:22;g.shadowBlur=0;g.stroke();
+    g.strokeStyle='#C8DC3C';g.lineWidth=phImg?9:12;g.stroke();
+    g.fillStyle='#22C55E';g.beginPath();g.arc(X(pts[0]),Y(pts[0]),phImg?11:15,0,7);g.fill();
+    g.fillStyle='#EF4444';g.beginPath();g.arc(X(pts.at(-1)),Y(pts.at(-1)),phImg?11:15,0,7);g.fill();
+    g.shadowBlur=12;
+  }
+  // Icono de bici + título
+  const baseY=H-(phFmt==='story'?560:470);
+  g.save();g.translate(70,baseY-58);g.scale(2.6,2.6);g.strokeStyle='#fff';g.lineWidth=2;g.lineCap='round';g.lineJoin='round';g.shadowBlur=0;
+  g.stroke(new Path2D('M5.5 20.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zm13 0a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h3'));g.restore();
+  if(a.group){g.font=F(700,32);g.fillStyle='#C8DC3C';g.fillText('SALIDA EN GRUPO',150,baseY-18)}
+  g.font=F(800,68);g.fillStyle='#fff';
+  let title=a.name||'Salida en bici';while(g.measureText(title).width>W-140&&title.length>4)title=title.slice(0,-2);
+  if(title!==(a.name||'Salida en bici'))title+='…';
+  g.fillText(title,70,baseY+70);
+  // Datos
+  const vm=a.mins>0?a.km/(a.mins/60):0;
+  const stats=[['Distancia',fmtNum(a.km,2)+' km'],['Tiempo',a.mins>=60?Math.floor(a.mins/60)+'h '+String(a.mins%60).padStart(2,'0')+'min':(a.mins||0)+' min'],['Desnivel','+'+(a.up||0)+' m'],['Vel. media',vm?fmtNum(vm,1)+' km/h':'—']];
+  stats.forEach(([l,v],i)=>{
+    const x=70+(i%2)*470,y=baseY+170+Math.floor(i/2)*170;
+    g.font=F(600,34);g.fillStyle='rgba(255,255,255,.85)';g.fillText(l,x,y);
+    g.font=F(800,72);g.fillStyle='#fff';g.fillText(v,x,y+78);
+  });
+  g.shadowBlur=0;
+  cv.toBlob(b=>{phBlob=b;$('phPrev').src=URL.createObjectURL(b)},'image/jpeg',0.9);
+}
+async function phShare(){
+  if(!phBlob){toast('Espera un momento…');return}
+  const file=new File([phBlob],'velogo-'+(phAct?.date||'salida')+'.jpg',{type:'image/jpeg'});
+  try{
+    if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],text:'Mi salida en bici con VeloGo 🚴'});return}
+  }catch(e){if(e.name==='AbortError')return}
+  phDownload();toast('Foto guardada. Compártela desde tu galería');
+}
+function phDownload(){
+  if(!phBlob)return;const a=document.createElement('a');a.href=URL.createObjectURL(phBlob);a.download='velogo-'+(phAct?.date||'salida')+'.jpg';document.body.appendChild(a);a.click();a.remove();
+}
+
 
 
 /* ===== Actividades: GPX / TCX (se guardan en el móvil) ===== */
@@ -1661,7 +1782,7 @@ $('fileIn').onchange=async e=>{
 function renderActs(){
   const m=iso(new Date()).slice(0,7);const mm=acts.filter(a=>a.date.startsWith(m));
   $('aKm').textContent=Math.round(mm.reduce((s,a)=>s+a.km,0));$('aN').textContent=mm.length;$('aUp').textContent=mm.reduce((s,a)=>s+a.up,0);
-  $('actList').innerHTML=acts.length?acts.map(a=>`<div class="act" onclick="openAct(${a.id})" style="cursor:pointer"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 17 9 11l4 4 8-8"/></svg></div><div><b>${a.group?'🛰️ ':''}${esc(a.name)}</b><small>${fmtDate(a.date)} · ${a.km} km · ${a.up} m${a.mins?` · ${Math.floor(a.mins/60)}h ${a.mins%60}min`:''}</small></div></div>`).join(''):`<div class="empty"><svg class="i" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 20h16"/></svg>Aún no has subido ninguna actividad</div>`;
+  $('actList').innerHTML=acts.length?acts.map(a=>`<div class="act" onclick="openAct(${a.id})" style="cursor:pointer"><div class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 17 9 11l4 4 8-8"/></svg></div><div><b>${a.group?'🛰️ ':''}${esc(a.name)}</b><small>${fmtDate(a.date)} · ${a.km} km · ${a.up} m${a.mins?` · ${Math.floor(a.mins/60)}h ${a.mins%60}min`:''}</small></div><button class="round" style="width:46px;height:46px;flex-shrink:0" aria-label="Foto con tus datos" onclick="event.stopPropagation();openPhoto(${a.id})">📸</button></div>`).join(''):`<div class="empty"><svg class="i" viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M4 20h16"/></svg>Aún no has subido ninguna actividad</div>`;
 }
 
 /* ===== Perfil y tema ===== */
