@@ -578,11 +578,11 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   <div class="sec" style="margin-top:14px"><h3 style="font-size:18px">Ayuda</h3></div>
   <div class="list">
     <button class="li" onclick="openHelp()"><span class="em">❓</span><div><b>Cómo funciona</b><small>Preguntas rápidas</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
-    <button class="li" onclick="inviteFriends()"><span class="em">📣</span><div><b>Invitar a amigos</b><small>Comparte VeloGo por WhatsApp</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+    <button class="li" onclick="openInvite()"><span class="em">📣</span><div><b>Invitar a amigos</b><small>Código QR, WhatsApp y cartel para el club</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
     <a class="li" style="text-decoration:none;color:inherit" href="privacidad.html"><span class="em">📄</span><div><b>Privacidad y condiciones</b><small>Qué datos guardamos y por qué</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></a>
     <button class="li" onclick="deleteAccount()"><span class="em">🗑️</span><div><b style="color:var(--red)">Borrar mi cuenta y mis datos</b><small>No se puede deshacer</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.3</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.4</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -1731,6 +1731,16 @@ async function doInstall(){
   if(isIOS())toast('En iPhone: pulsa Compartir ⬆️ y luego "Añadir a pantalla de inicio"');
   else toast('Menú ⋮ del navegador → "Instalar app" o "Añadir a pantalla de inicio"');
 }
+function openInvite(){
+  $('rideBody').innerHTML=sheetHead('📣 Invitar a amigos')+`
+   <div style="background:#fff;border-radius:22px;padding:16px;text-align:center;margin-bottom:12px"><img src="icons/qr.svg" alt="Código QR de VeloGo" style="width:230px;height:230px;display:block;margin:0 auto"><b style="color:#0E1A2B;display:block;margin-top:6px">Enséñalo: que lo escaneen con la cámara</b></div>
+   <div style="display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-lime" onclick="inviteFriends()">💬 Enviar invitación</button>
+    <a class="btn btn-line" style="text-decoration:none" href="web.html" target="_blank" rel="noopener">🌐 Página de presentación</a>
+    <a class="btn btn-line" style="text-decoration:none" href="cartel.html" target="_blank" rel="noopener">🖨️ Cartel con QR para imprimir</a>
+   </div>`;
+  openRideId=null;openSheet('sh-ride');
+}
 function inviteFriends(){
   const t=`🚴 Te invito a VeloGo, la app para organizar salidas en bici con la comunidad: día, hora, punto de encuentro, rutas y pelotón en vivo. Es gratis 👇\n${appUrl()}`;
   if(navigator.share)navigator.share({title:'VeloGo',text:t}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
@@ -1747,7 +1757,7 @@ const HELP=[
 ];
 function openHelp(){
   $('rideBody').innerHTML=sheetHead('❓ Cómo funciona')+HELP.map(([e,q,a])=>`<details class="faq"><summary><span>${e}</span>${q}</summary><p>${a}</p></details>`).join('')+
-   `<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn btn-lime" onclick="inviteFriends()">📣 Invitar a amigos</button><a class="btn btn-line" style="text-decoration:none" href="privacidad.html">📄 Privacidad y condiciones</a></div>`;
+   `<div style="display:flex;flex-direction:column;gap:10px;margin-top:14px"><button class="btn btn-lime" onclick="openInvite()">📣 Invitar a amigos</button><a class="btn btn-line" style="text-decoration:none" href="privacidad.html">📄 Privacidad y condiciones</a></div>`;
   openRideId=null;openSheet('sh-ride');
 }
 async function deleteAccount(){
