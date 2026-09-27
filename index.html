@@ -279,6 +279,9 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
 .bar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
 .bar i{width:100%;max-width:38px;border-radius:8px 8px 3px 3px;background:#3B5578;display:block;max-height:110px}
 .bv{font-size:12px;font-weight:800;color:var(--txt)}.bl{font-size:12px;color:var(--txt2);font-weight:600}
+.part{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;margin-bottom:8px}
+.prt-t,.prt-b{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.prt-t{margin-bottom:8px}.prt-t span{font-weight:800;font-size:14px;white-space:nowrap}.prt-b small{color:var(--txt2)}
 .sres{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 6px;border-bottom:1px solid var(--line)}
 .sres span{font-size:22px}.sres b{display:block;font-size:16px}.sres small{color:var(--txt2);font-size:13px}
 .sopt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -443,6 +446,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
       <button class="gm-link" onclick="goGoogle()">Abrir en Google Maps</button>
       <button class="gm-link" onclick="gpxPlan()">⬇️ Descargar GPX (Garmin, Wahoo…)</button>
       <button class="gm-link" id="bDelComm" style="color:var(--red);display:none" onclick="viewingComm&&delCommRoute(viewingComm.id)">Quitar de la comunidad</button>
+      <button class="gm-link" id="bRepComm" style="display:none" onclick="viewingComm&&reportContent('routes',viewingComm.id,viewingComm.name)">⚠️ Reportar esta ruta</button>
     </div>
     <div class="pstats" id="pStats"></div>
     <div id="pProf"></div>
@@ -557,10 +561,13 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
   </div>
   <div class="sec" style="margin-top:6px"><h3 style="font-size:18px">Tu cuenta</h3></div>
   <div id="acctBox" style="margin-bottom:16px"></div>
+  <div class="sec"><h3 style="font-size:18px">🚲 Mi bici</h3></div>
+  <div id="bikeBox" style="margin-bottom:16px"></div>
+  <div id="adminBox" style="display:none;margin-bottom:16px"><button class="li" style="border-color:var(--bronze)" onclick="openAdmin()"><span class="em">🛡️</span><div><b>Panel de administración</b><small>Reportes, números y moderación</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button></div>
   <div class="set">Modo claro <label class="sw"><input type="checkbox" id="swLight" onchange="setTheme(this.checked)"><span></span></label></div>
   <div class="set">Aparecer en "Ciclistas cercanos" <label class="sw"><input type="checkbox" id="swNear" checked onchange="setNear(this.checked)"><span></span></label></div>
   <div class="set">Publicar mis salidas en la comunidad <label class="sw"><input type="checkbox" id="swPub" checked onchange="store.set('pubActs',this.checked);toast(this.checked?'Tus salidas se verán en la comunidad':'Tus salidas serán privadas')"><span></span></label></div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.1</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.2</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -931,7 +938,7 @@ async function openRide(id,keep){
      <button class="btn btn-line" onclick="shareRide('${r.id}')">💬 Compartir por WhatsApp</button>
      ${inR?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="addToCalendar('${r.id}')">📅 Calendario</button><button class="btn btn-line" style="font-size:15px" onclick="addToGoogleCal('${r.id}')">📆 Google Calendar</button></div>`:''}
      ${r.route?`<button class="btn btn-line" style="font-size:15px" onclick="gpxRide('${r.id}')">⬇️ Descargar GPX (Garmin, Wahoo…)</button>`:''}
-     ${isOwner(r)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="editRide('${r.id}')">✏️ Editar</button><button class="btn btn-line" style="font-size:15px" onclick="notifyChange('${r.id}')">📣 Avisar cambio</button></div><button class="btn" style="color:var(--red)" onclick="cancelRide('${r.id}')">Cancelar salida</button>`:''}
+     ${isOwner(r)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-line" style="font-size:15px" onclick="editRide('${r.id}')">✏️ Editar</button><button class="btn btn-line" style="font-size:15px" onclick="notifyChange('${r.id}')">📣 Avisar cambio</button></div><button class="btn" style="color:var(--red)" onclick="cancelRide('${r.id}')">Cancelar salida</button>`:`<button class="btn" style="color:var(--txt2);font-size:14px" onclick="reportContent('rides','${r.id}','${esc(String(r.title||'Salida').replace(/['"\\]/g,''))}')">⚠️ Reportar esta salida</button>`}
    </div>`;
   if(!keep)openSheet('sh-ride');
   drawRideMap(r);fillWxDetail(r);
@@ -1140,7 +1147,7 @@ function feedCard(f){
   const cnt=REACT.map(e=>[e,Object.values(likes).filter(x=>x===e).length]);
   const vm=f.mins>0?f.km/(f.mins/60):0;
   return `<div class="feed">
-    <div class="fh"><div class="face" style="margin:0;width:40px;height:40px;background:${colorOf(f.name)}">${ini(f.name)}</div><div><b>${esc(f.name)}${f.uid===uid?' (tú)':''}</b><small>${fmtDate(f.date)}${f.group?' · 🛰️ en grupo':''}</small></div>${f.uid===uid?`<button class="x" style="width:34px;height:34px" aria-label="Borrar publicación" onclick="delFeed('${f.id}')"><svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:''}</div>
+    <div class="fh"><div class="face" style="margin:0;width:40px;height:40px;background:${colorOf(f.name)}">${ini(f.name)}</div><div><b>${esc(f.name)}${f.uid===uid?' (tú)':''}</b><small>${fmtDate(f.date)}${f.group?' · 🛰️ en grupo':''}</small></div>${f.uid!==uid?`<button class="x" style="width:34px;height:34px;font-size:14px" aria-label="Reportar" onclick="reportContent('feed','${f.id}','${esc(String(f.title).replace(/['"\\]/g,''))}')">⚠️</button>`:''}${f.uid===uid?`<button class="x" style="width:34px;height:34px" aria-label="Borrar publicación" onclick="delFeed('${f.id}')"><svg class="i" viewBox="0 0 24 24" style="width:18px"><path d="M6 6l12 12M18 6 6 18"/></svg></button>`:''}</div>
     <div class="ft">${esc(f.title)}</div>
     <div class="fb"><div class="fs"><div><b>${fmtNum(f.km,1)}</b><span>km</span></div><div><b>+${f.up}</b><span>m</span></div><div><b>${hm(f.mins||0)}</b><span>tiempo</span></div>${vm?`<div><b>${fmtNum(vm,1)}</b><span>km/h</span></div>`:''}</div>${f.poly?`<div class="fr">${routeSVG(f.poly,96,96)}</div>`:''}</div>
     <div class="freact">${cnt.map(([e,n])=>`<button class="${mine===e?'on':''}" onclick="react('${f.id}','${e}')">${e} <span>${n||''}</span></button>`).join('')}</div>
@@ -1279,7 +1286,7 @@ function openPoi(id){
    ${p.note?`<div class="li" style="cursor:default;margin-bottom:14px"><span class="em">💬</span><div><b style="font-weight:500">${esc(p.note)}</b></div></div>`:''}
    <div style="display:flex;flex-direction:column;gap:10px">
     <a class="btn btn-lime" style="text-decoration:none" href="${mapsLink('',{lat:p.lat,lng:p.lng})}" target="_blank" rel="noopener">🧭 Cómo llegar</a>
-    ${p.uid===uid?`<button class="btn" style="color:var(--red)" onclick="delPoi('${p.id}')">Borrar este punto</button>`:''}
+    ${p.uid===uid?`<button class="btn" style="color:var(--red)" onclick="delPoi('${p.id}')">Borrar este punto</button>`:`<button class="btn" style="color:var(--txt2)" onclick="reportContent('pois','${p.id}','${esc(String(p.name).replace(/['"\\]/g,''))}')">⚠️ Reportar (no existe, es incorrecto…)</button>`}
    </div>`;
   openRideId=null;openSheet('sh-ride');
 }
@@ -1492,7 +1499,7 @@ async function linkGoogle(){
   const a=firebase.auth(),u=a.currentUser;if(!u){toast('Conectando… inténtalo en unos segundos');return}
   try{
     await u.linkWithPopup(gProvider());
-    toast('✅ Cuenta guardada con Google');renderAccount();syncActs();
+    toast('✅ Cuenta guardada con Google');renderAccount();syncActs();setTimeout(checkAdmin,1500);
   }catch(e){await authErr(e,'link')}
 }
 async function signInGoogle(){
@@ -1588,6 +1595,107 @@ function renderGoal(){
   const mx=Math.max(g,...ms.map(x=>x[1]),1);
   $('chartBox').innerHTML=`<div class="bars">${ms.map(([l,v],i)=>`<div class="bar"><span class="bv">${v?Math.round(v):''}</span><i style="height:${Math.max(3,Math.round(v/mx*110))}px;${i===5?'background:var(--lime)':''}"></i><span class="bl">${l}</span></div>`).join('')}</div>`;
 }
+
+
+/* ===================================================================
+   v1.2 — MI BICI · REPORTAR · PANEL DE ADMINISTRACIÓN
+   =================================================================== */
+/* ---- Mi bici: km y mantenimiento ---- */
+const PARTS=[['chain','⛓️','Cadena',3000],['brakes','🛑','Pastillas de freno',2500],['tires','🛞','Neumáticos',4000],['cassette','⚙️','Cassette y platos',8000],['service','🔧','Revisión general',5000]];
+const bikes=()=>me?.bikes||[];
+function saveBikes(list){if(!me)return;me.bikes=list;store.set('me',me);if(db&&uid)db.collection('users').doc(uid).set({bikes:list},{merge:true}).catch(netErr);renderBikeSummary()}
+function partLeft(b,p){const last=(b.parts||{})[p[0]]??0;return p[3]-(b.km-last)}
+function bikeAlerts(b){return PARTS.filter(p=>partLeft(b,p)<=200)}
+function addKmToBike(km){
+  const l=bikes();if(!l.length||!km)return;
+  const b=l.find(x=>x.main)||l[0];b.km=Math.round((b.km||0)+km);
+  saveBikes(l);
+  const due=PARTS.filter(p=>partLeft(b,p)<=0);
+  if(due.length)setTimeout(()=>toast('🔧 '+b.name+': toca revisar '+due.map(p=>p[2].toLowerCase()).join(', ')),3500);
+}
+function renderBikeSummary(){
+  const el=$('bikeBox');if(!el)return;const l=bikes();
+  if(!l.length){el.innerHTML=`<button class="li" onclick="addBike()"><span class="em">🚲</span><div><b>Añadir mi bici</b><small>Cuenta sus km y te avisa del mantenimiento</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`;return}
+  el.innerHTML=l.map(b=>{const al=bikeAlerts(b);return `<button class="li" style="margin-bottom:8px;${al.length?'border-color:var(--bronze)':''}" onclick="openBike('${b.id}')"><span class="em">${b.type==='mtb'?'🚵':'🚴'}</span><div><b>${esc(b.name)}${b.main&&l.length>1?' ⭐':''}</b><small>${(b.km||0).toLocaleString('es-ES')} km${al.length?` · <span style="color:var(--bronze);font-weight:700">🔧 ${al.length} aviso${al.length>1?'s':''}</span>`:' · todo al día ✓'}</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>`}).join('')+
+   (l.length<3?`<button class="mini" style="width:100%;justify-content:center" onclick="addBike()">➕ Añadir otra bici</button>`:'');
+}
+function addBike(){
+  if(!ready())return;
+  const name=(prompt('Nombre de la bici (ej. Specialized de carretera)','')||'').trim().slice(0,30);if(!name)return;
+  const km=Math.max(0,parseInt(prompt('¿Cuántos km tiene ya? (aproximado, puedes poner 0)','0'),10)||0);
+  const mtb=confirm('¿Es de montaña / gravel?\n\nAceptar = montaña · Cancelar = carretera');
+  const l=bikes();const parts={};PARTS.forEach(p=>parts[p[0]]=km);
+  l.push({id:'b'+Date.now().toString(36),name,type:mtb?'mtb':'road',km,parts,main:!l.length});
+  saveBikes(l);toast('🚲 Bici añadida. Tus salidas sumarán km a la bici principal');
+}
+function openBike(id){
+  const l=bikes();const b=l.find(x=>x.id===id);if(!b)return;
+  $('rideBody').innerHTML=sheetHead((b.type==='mtb'?'🚵 ':'🚴 ')+esc(b.name))+`
+   <div class="codebox" style="border-style:solid"><small>Kilómetros totales</small><b style="letter-spacing:0">${(b.km||0).toLocaleString('es-ES')}</b></div>
+   <div class="sec"><h3 style="font-size:18px">Mantenimiento</h3></div>
+   ${PARTS.map(p=>{const left=partLeft(b,p),pc=Math.max(0,Math.min(100,Math.round((1-left/p[3])*100)));const due=left<=0,soon=left<=200;
+     return `<div class="part"><div class="prt-t"><b>${p[1]} ${p[2]}</b><span style="color:${due?'var(--red)':soon?'var(--bronze)':'var(--txt2)'}">${due?'¡Toca ya!':'quedan '+left.toLocaleString('es-ES')+' km'}</span></div>
+      <div class="gbar"><i style="width:${pc}%;background:${due?'var(--red)':soon?'var(--bronze)':'linear-gradient(90deg,var(--lime),#22C55E)'}"></i></div>
+      <div class="prt-b"><small>Cada ${p[3].toLocaleString('es-ES')} km</small><button class="mini" style="min-height:36px" onclick="partDone('${b.id}','${p[0]}')">✓ Hecho hoy</button></div></div>`}).join('')}
+   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+    ${l.length>1&&!b.main?`<button class="btn btn-line" style="grid-column:1/-1;font-size:15px" onclick="mainBike('${b.id}')">⭐ Hacerla bici principal</button>`:''}
+    <button class="btn btn-line" style="font-size:15px" onclick="setBikeKm('${b.id}')">✏️ Ajustar km</button>
+    <button class="btn btn-line" style="font-size:15px;color:var(--red)" onclick="delBike('${b.id}')">🗑️ Quitar</button>
+   </div>
+   <p style="color:var(--txt2);font-size:13px;margin-top:12px;text-align:center">Los km de tus salidas se suman solos a la bici principal.</p>`;
+  openRideId=null;openSheet('sh-ride');
+}
+function partDone(bid,pid){const l=bikes();const b=l.find(x=>x.id===bid);if(!b)return;b.parts=b.parts||{};b.parts[pid]=b.km||0;saveBikes(l);openBike(bid);toast('✓ Anotado')}
+function setBikeKm(bid){const l=bikes();const b=l.find(x=>x.id===bid);if(!b)return;const v=parseInt(prompt('Km totales de la bici',b.km||0),10);if(isNaN(v)||v<0)return;b.km=v;saveBikes(l);openBike(bid)}
+function mainBike(bid){const l=bikes();l.forEach(b=>b.main=b.id===bid);saveBikes(l);openBike(bid);toast('⭐ Bici principal cambiada')}
+function delBike(bid){if(!confirm('¿Quitar esta bici?'))return;let l=bikes().filter(b=>b.id!==bid);if(l.length&&!l.some(b=>b.main))l[0].main=true;saveBikes(l);closeSheets()}
+
+/* ---- Reportar contenido ---- */
+function reportContent(type,id,title){
+  if(!ready())return;
+  const reason=prompt('¿Qué pasa con este contenido? (opcional)\nEj.: no existe, es ofensivo, es peligroso…','');if(reason===null)return;
+  db.collection('reports').add({type,refId:id,title:String(title||'').slice(0,80),by:uid,byName:myName(),reason:reason.trim().slice(0,200),createdAt:FV.serverTimestamp()})
+    .then(()=>toast('Gracias. Lo revisaremos pronto')).catch(netErr);
+}
+
+/* ---- Panel de administración (solo aparece si las reglas te dejan leer los reportes) ---- */
+let isAdmin=false;
+async function checkAdmin(){
+  if(!db||!uid)return;
+  try{await db.collection('reports').limit(1).get();isAdmin=true}catch(e){isAdmin=false}
+  $('adminBox').style.display=isAdmin?'block':'none';
+}
+const COL={feed:'Publicación',pois:'Punto ciclista',routes:'Ruta de la comunidad',rides:'Salida',groups:'Grupo'};
+async function openAdmin(){
+  if(!isAdmin)return;
+  $('rideBody').innerHTML=sheetHead('🛡️ Administración')+`<div class="stats" id="admStats" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px"><div class="stat"><b>…</b><span>cargando</span></div></div>
+   <div class="sec"><h3 style="font-size:18px">Reportes</h3></div><div id="admReports"><div class="empty">Cargando…</div></div>
+   <div class="sec" style="margin-top:14px"><h3 style="font-size:18px">Últimos puntos y rutas</h3></div><div id="admLatest"></div>`;
+  openRideId=null;openSheet('sh-ride');
+  const cnt=async c=>{try{return(await db.collection(c).limit(2000).get()).docs.length}catch(e){return'—'}};
+  const since=Date.now()-86400000;
+  const [u,r,f,p,ro,g,n]=await Promise.all(['users','rides','feed','pois','routes','groups'].map(cnt).concat([db.collection('nearby').where('t','>',since).get().then(s=>s.docs.length).catch(()=>'—')]));
+  $('admStats').innerHTML=[['👥',u,'ciclistas'],['📅',r,'salidas'],['📰',f,'publicaciones'],['☕',p,'puntos'],['🗺️',ro,'rutas'],['🟢',n,'activos 24 h']].map(([e,v,l])=>`<div class="stat"><span style="font-size:20px">${e}</span><b class="num">${v}</b><span>${l}</span></div>`).join('');
+  loadReports();
+  try{
+    const ps=(await db.collection('pois').orderBy('createdAt','desc').limit(8).get()).docs.map(d=>({c:'pois',id:d.id,t:(POI_CAT[d.data().cat]||['📍'])[0]+' '+d.data().name,by:d.data().by}));
+    const rs=(await db.collection('routes').orderBy('createdAt','desc').limit(8).get()).docs.map(d=>({c:'routes',id:d.id,t:'🗺️ '+d.data().name,by:d.data().by}));
+    $('admLatest').innerHTML=[...ps,...rs].map(x=>`<div class="li" style="cursor:default;margin-bottom:8px"><div><b>${esc(x.t)}</b><small>${COL[x.c]} · por ${esc(x.by)}</small></div><button class="mini" style="color:var(--red)" onclick="admDelete('${x.c}','${x.id}')">🗑️</button></div>`).join('')||'<div class="empty">Nada todavía</div>';
+  }catch(e){$('admLatest').innerHTML='<div class="empty">No se pudo cargar</div>'}
+}
+async function loadReports(){
+  try{
+    const s=await db.collection('reports').orderBy('createdAt','desc').limit(50).get();
+    const l=s.docs.map(d=>({id:d.id,...d.data()}));
+    $('admReports').innerHTML=l.length?l.map(r=>`<div class="feed"><b>${COL[r.type]||r.type}: ${esc(r.title)}</b><small style="display:block;color:var(--txt2);margin:4px 0 10px">Reportado por ${esc(r.byName)}${r.reason?' · «'+esc(r.reason)+'»':''}</small>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="mini" style="justify-content:center;color:var(--red)" onclick="admDelete('${r.type}','${r.refId}','${r.id}')">🗑️ Borrar contenido</button><button class="mini" style="justify-content:center" onclick="admDismiss('${r.id}')">✓ Descartar</button></div></div>`).join(''):'<div class="empty">✅ No hay reportes pendientes</div>';
+  }catch(e){$('admReports').innerHTML='<div class="empty">No se pudo cargar</div>'}
+}
+async function admDelete(col,id,rep){
+  if(!confirm('¿Borrar este contenido para todos?'))return;
+  try{await db.collection(col).doc(id).delete();if(rep)await db.collection('reports').doc(rep).delete();toast('Borrado');openAdmin()}catch(e){toast('No se pudo borrar (¿reglas publicadas?)')}
+}
+async function admDismiss(rep){try{await db.collection('reports').doc(rep).delete();loadReports()}catch(e){netErr(e)}}
 
 /* ===== Más funciones ===== */
 const FEATURES=[
@@ -1906,7 +2014,7 @@ function renderPlan(){
   $('pProf').innerHTML=r&&r.prof?profileSVG(r.prof):'';
   $('pStages').innerHTML=stageRows(r);
   $('pActions').style.display=r?'grid':'none';
-  $('bSave').style.display=v&&!viewingComm?'none':'flex';$('bPub').style.display=r&&!v?'flex':'none';$('bDelComm').style.display=v&&viewingComm&&viewingComm.uid===uid?'block':'none';
+  $('bSave').style.display=v&&!viewingComm?'none':'flex';$('bPub').style.display=r&&!v?'flex':'none';$('bDelComm').style.display=v&&viewingComm&&viewingComm.uid===uid?'block':'none';$('bRepComm').style.display=v&&viewingComm&&viewingComm.uid!==uid?'block':'none';
   ['bGo','bSave','bUse'].forEach(i=>$(i).disabled=!r||plan.busy);$('bGo').innerHTML=plan.view&&r&&r.mode==='track'?'▲ Repetir':'▲ Iniciar';
   $('bUse').innerHTML=plan.fromCreate?'✓ Añadir a la salida':'📅 Crear salida con esta ruta';
 }
@@ -2290,7 +2398,7 @@ async function finishLive(save){
   acts.unshift(a);store.set('acts',acts.slice(0,300));saveActRemote(a);
   const gain=Math.min(300,Math.round(L.km))+10+(L.rideId?30:0);
   addPoints(gain,L.rideId?{done:FV.increment(1)}:null);if(L.rideId&&me)me.done=(me.done||0)+1;
-  publishAct(a);checkBadges();
+  publishAct(a);checkBadges();addKmToBike(L.km);
   renderActs();go('actividades');
   toast(`✅ Guardada: ${a.km} km · +${gain} puntos`);
   setTimeout(()=>openPhoto(a.id,true),700);
@@ -2438,7 +2546,7 @@ $('fileIn').onchange=async e=>{
     if(!confirm(`${name}\n\n📏 ${a.km} km\n⛰️ ${a.up} m de desnivel${mins?`\n⏱️ ${Math.floor(mins/60)} h ${mins%60} min\n⚡ ${(km/(mins/60)).toFixed(1)} km/h de media`:''}\n\n¿Guardar esta actividad?`))return;
     acts.unshift(a);store.set('acts',acts);saveActRemote(a);
     const gain=Math.min(300,Math.round(km))+10;addPoints(gain);
-    renderActs();publishAct(a);checkBadges();toast(`Actividad guardada · +${gain} puntos`);
+    renderActs();publishAct(a);checkBadges();addKmToBike(km);toast(`Actividad guardada · +${gain} puntos`);
   }catch(_){toast('No pudimos leer este archivo. Comprueba que sea GPX o TCX.')}
 };
 function renderActs(){
@@ -2505,11 +2613,11 @@ function startFirebase(){
       if(s.exists&&s.data().name){me={...me,...s.data()};store.set('me',me);$('onb').classList.remove('show')}
       else if(me&&me.name){db.collection('users').doc(uid).set({name:me.name,pts:me.pts||0,created:me.created||0,since:FV.serverTimestamp()},{merge:true}).catch(()=>{})}
       else showOnb();
-      paintName();renderStats();renderRank();
+      paintName();renderStats();renderRank();renderBikeSummary();
       if((me?.group||null)!==(myGroup?.id||null)||!groupUnsub)watchGroup();
       checkBadges();
     },e=>console.error(e));
-    watchFeed();watchPois();startNear();syncActs();renderAccount();
+    watchFeed();watchPois();startNear();syncActs();renderAccount();checkAdmin();
     // Salidas próximas (en vivo)
     db.collection('rides').where('date','>=',iso(new Date())).orderBy('date').limit(150).onSnapshot(s=>{
       rides=s.docs.map(d=>({id:d.id,...d.data()}));ridesLoaded=true;renderRides();drawRideMarkers();
@@ -2532,7 +2640,7 @@ function startFirebase(){
 /* ===== Arranque ===== */
 $('app').addEventListener('scroll',e=>{if(e.target.id==='app')e.target.scrollTop=0});
 setTheme(store.get('light',false));
-$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderGroup();renderFeed();renderBadgeCount();
+$('swPub').checked=store.get('pubActs',true);$('swNear').checked=store.get('nearOn',true);renderBikeSummary();renderGroup();renderFeed();renderBadgeCount();
 paintName();renderRides();renderActs();
 go(store.get('tab','comunidad'));
 startFirebase();
