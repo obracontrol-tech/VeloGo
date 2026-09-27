@@ -597,7 +597,7 @@ textarea.inp{padding:14px 16px;min-height:80px;resize:vertical}
     <a class="li" style="text-decoration:none;color:inherit" href="privacidad.html"><span class="em">📄</span><div><b>Privacidad y condiciones</b><small>Qué datos guardamos y por qué</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></a>
     <button class="li" onclick="deleteAccount()"><span class="em">🗑️</span><div><b style="color:var(--red)">Borrar mi cuenta y mis datos</b><small>No se puede deshacer</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
   </div>
-  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.5</p>
+  <p style="color:var(--txt2);font-size:13px;text-align:center;margin-top:20px">VeloGo · versión 1.5.1</p>
 </section>
 
 <!-- ============ BARRA INFERIOR ============ -->
@@ -1840,9 +1840,9 @@ async function saveOffline(tiles,label){
   if(!navigator.onLine){toast('Necesitas conexión para descargar el mapa');return}
   if(dlBusy){toast('Ya hay una descarga en marcha');return}
   const MAX=2500;if(tiles.length>MAX){toast(`Zona demasiado grande (${tiles.length} partes). Acerca el mapa.`);return}
-  dlBusy=true;
+  dlBusy=true;showDl(0,1,label);
   try{
-    const tj=await (await fetch(OFM_TJ)).json();const tpl=tj.tiles[0];
+    const tj=await (await fetch(OFM_TJ,{cache:'no-store'})).json();const tpl=tj.tiles[0];
     const style=await (await fetch(BASE_STYLE)).json();
     const extra=[BASE_STYLE,OFM_TJ];
     const sp=style.sprite;if(typeof sp==='string')['.json','.png','@2x.json','@2x.png'].forEach(s=>extra.push(sp+s));
@@ -1866,7 +1866,7 @@ async function saveOffline(tiles,label){
     store.set('offmaps',list.slice(0,30));
     hideDl();toast(fail>urls.length*0.2?`Guardado con fallos (${fail}). Vuelve a intentarlo con buena cobertura`:`✅ Mapa guardado: "${label}" (${fmtNum(bytes/1048576,1)} MB). Funciona sin conexión`);
     renderOffmaps();
-  }catch(e){console.error(e);hideDl();toast('No se pudo descargar el mapa. Revisa la conexión')}
+  }catch(e){console.error(e);hideDl();alert('No se pudo descargar el mapa.\n\nDetalle: '+(e&&e.message||e)+'\n\nComprueba la conexión y vuelve a intentarlo.')}
   finally{dlBusy=false}
 }
 function showDl(d,t,l){const el=$('dlBar');el.style.display='block';el.innerHTML=`<b>📥 Guardando mapa: ${esc(l)}</b><div class="gbar"><i style="width:${Math.round(d/t*100)}%"></i></div><small>${d} de ${t}</small>`}
@@ -1880,11 +1880,41 @@ function saveViewOffline(){
   if(!confirm(`¿Guardar esta zona del mapa para usarla sin conexión?\n\nSon ${t.length} partes (aprox. ${Math.max(1,Math.round(t.length*0.04))} MB).`))return;
   reverseName({lat:map.getCenter().lat,lng:map.getCenter().lng}).then(n=>saveOffline(t,/^Punto en el mapa/.test(n)?'Zona guardada '+fmtDate(iso(new Date())):'Zona de '+n.split(',').pop().trim()));
 }
+function areaTiles(lat,lng,km){
+  const dLat=km/111.32,dLng=km/(111.32*Math.cos(lat*Math.PI/180));
+  const b={getWest:()=>lng-dLng,getEast:()=>lng+dLng,getNorth:()=>lat+dLat,getSouth:()=>lat-dLat};
+  return tilesForBounds(b,8,14);
+}
+function saveHereOffline(){
+  if(!navigator.geolocation){toast('Ubicación no disponible');return}
+  toast('📍 Buscando tu ubicación…');
+  navigator.geolocation.getCurrentPosition(async p=>{
+    const t=areaTiles(p.coords.latitude,p.coords.longitude,10);
+    const n=await reverseName({lat:p.coords.latitude,lng:p.coords.longitude});
+    const town=/^Punto en el mapa/.test(n)?'mi zona':n.split(',').pop().trim();
+    if(!confirm(`¿Descargar el mapa de ${town} (10 km alrededor)?\n\nOcupa unos ${Math.max(2,Math.round(t.length*0.035))} MB. Mejor con WiFi.`))return;
+    saveOffline(t,'Zona de '+town);
+  },()=>toast('Activa la ubicación del móvil'),{enableHighAccuracy:false,timeout:15000,maximumAge:300000});
+}
+async function saveTownOffline(){
+  const q=(prompt('¿Qué pueblo o comarca quieres descargar?','')||'').trim();if(!q)return;
+  toast('🔎 Buscando '+q+'…');
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=es&accept-language=es&q='+encodeURIComponent(q));
+    const d=(await r.json())[0];if(!d){toast('No se encontró "'+q+'". Prueba con el nombre del pueblo');return}
+    const t=areaTiles(+d.lat,+d.lon,10);const name=d.display_name.split(',')[0];
+    if(!confirm(`¿Descargar el mapa de ${name} (10 km alrededor)?\n\nOcupa unos ${Math.max(2,Math.round(t.length*0.035))} MB. Mejor con WiFi.`))return;
+    saveOffline(t,name);
+  }catch(e){toast('Sin conexión para buscar el pueblo')}
+}
 function renderOffmaps(){
   const el=$('offBox');if(!el)return;const l=store.get('offmaps',[]);
-  el.innerHTML=(l.length?l.slice(0,6).map(m=>`<div class="li" style="cursor:default;margin-bottom:8px"><span class="em">🗺️</span><div><b>${esc(m.label)}</b><small>${fmtDate(m.date)} · ${m.mb} MB</small></div></div>`).join('')+
+  const btns=`<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+     <button class="li" onclick="saveHereOffline()"><span class="em">📍</span><div><b>Descargar mi zona</b><small>10 km alrededor de donde estás</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+     <button class="li" onclick="saveTownOffline()"><span class="em">🔎</span><div><b>Descargar un pueblo o comarca</b><small>Escribe el nombre (ej. Marchena, Lleida)</small></div><svg class="i chev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button></div>`;
+  el.innerHTML=btns+(l.length?l.slice(0,6).map(m=>`<div class="li" style="cursor:default;margin-bottom:8px"><span class="em">✅</span><div><b>${esc(m.label)}</b><small>Guardado ${fmtDate(m.date)} · ${m.mb} MB · funciona sin conexión</small></div></div>`).join('')+
     `<button class="mini" style="width:100%;justify-content:center;color:var(--red)" onclick="clearOffmaps()">🗑️ Borrar todos los mapas guardados</button>`
-    :`<div class="empty" style="padding:14px">Aún no has guardado mapas.<br>En Rutas pulsa 📥 o, en una ruta, "Guardar mapa sin conexión".</div>`);
+    :`<small style="color:var(--txt2);display:block;padding:0 4px">También puedes guardar el mapa de una ruta desde el planificador ("📥 Guardar mapa sin conexión").</small>`);
 }
 async function clearOffmaps(){if(!confirm('¿Borrar todos los mapas guardados?'))return;try{await caches.delete(MAPCACHE)}catch(e){}store.set('offmaps',[]);renderOffmaps();toast('Mapas borrados')}
 function netState(){const off=!navigator.onLine;const el=$('offPill');if(el)el.style.display=off?'block':'none'}

@@ -1,5 +1,5 @@
 // VeloGo — Service Worker (v1.5: mapas sin conexión)
-const CACHE = 'velogo-v150';                 // la app (se renueva con cada versión)
+const CACHE = 'velogo-v151';                 // la app (se renueva con cada versión)
 const MAPS = 'velogo-offline-map';           // zonas guardadas por el ciclista (no se borran al actualizar)
 const VIEW = 'velogo-map-view';              // mapa ya visto (se recorta solo)
 const LIBS = 'velogo-libs';                  // librerías externas (mapa, Firebase, letras)
